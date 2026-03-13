@@ -28,7 +28,9 @@ const ROAD_TYPES = {
 // Overpass API endpoints (fallback chain)
 const OVERPASS_ENDPOINTS = [
     'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter'
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
+    'https://overpass.openstreetmap.ru/api/interpreter'
 ];
 
 // State
@@ -168,9 +170,11 @@ out skel qt;
 
 // Query Overpass API
 async function queryOverpass(query) {
-    for (const endpoint of OVERPASS_ENDPOINTS) {
+    const errors = [];
+    for (let i = 0; i < OVERPASS_ENDPOINTS.length; i++) {
+        const endpoint = OVERPASS_ENDPOINTS[i];
         try {
-            setStatus(`Querying ${new URL(endpoint).hostname}...`, 'loading');
+            setStatus(`Trying ${new URL(endpoint).hostname} (${i + 1}/${OVERPASS_ENDPOINTS.length})...`, 'loading');
 
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -183,15 +187,23 @@ async function queryOverpass(query) {
             if (response.ok) {
                 return await response.json();
             } else if (response.status === 429) {
-                setStatus('Rate limited. Waiting...', 'loading');
-                await new Promise(resolve => setTimeout(resolve, 30000));
+                setStatus(`Rate limited by ${new URL(endpoint).hostname}. Trying next...`, 'loading');
+                errors.push(`${new URL(endpoint).hostname}: rate limited`);
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            } else if (response.status === 504 || response.status === 503) {
+                setStatus(`Server ${new URL(endpoint).hostname} overloaded. Trying next...`, 'loading');
+                errors.push(`${new URL(endpoint).hostname}: server overloaded (${response.status})`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            } else {
+                errors.push(`${new URL(endpoint).hostname}: HTTP ${response.status}`);
             }
         } catch (error) {
             console.error(`Error with ${endpoint}:`, error);
+            errors.push(`${new URL(endpoint).hostname}: ${error.message}`);
         }
     }
 
-    throw new Error('All Overpass endpoints failed');
+    throw new Error(`All Overpass endpoints failed. Errors: ${errors.join('; ')}`);
 }
 
 // Parse OSM response to GeoJSON
