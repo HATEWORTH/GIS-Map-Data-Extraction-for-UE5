@@ -40,6 +40,20 @@ header p {
     margin-top: 2px;
 }
 
+header nav {
+    margin-top: 8px;
+}
+
+header nav a {
+    color: #60a5fa;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+header nav a:hover {
+    text-decoration: underline;
+}
+
 /* Controls Panel */
 #controls {
     background: #16213e;
