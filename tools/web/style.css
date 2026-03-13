@@ -1,0 +1,527 @@
+/* GIS Road Data Extractor - Styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #1a1a2e;
+    color: #e8e8e8;
+    min-height: 100vh;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Header */
+header {
+    background: #16213e;
+    padding: 12px 20px;
+    border-bottom: 1px solid #374151;
+    flex-shrink: 0;
+}
+
+header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #60a5fa;
+}
+
+header p {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+/* Controls Panel */
+#controls {
+    background: #16213e;
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #374151;
+    flex-shrink: 0;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-group.coordinates {
+    gap: 12px;
+}
+
+.control-group label {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+select, input[type="number"] {
+    background: #0f172a;
+    border: 1px solid #374151;
+    color: #e8e8e8;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border-color: #60a5fa;
+}
+
+input[type="number"] {
+    width: 100px;
+}
+
+button {
+    background: #374151;
+    border: none;
+    color: #e8e8e8;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #4b5563;
+}
+
+button.primary {
+    background: #2563eb;
+}
+
+button.primary:hover {
+    background: #3b82f6;
+}
+
+button:disabled {
+    background: #1f2937;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+/* Map Container */
+#map-container {
+    flex: 1 1 auto;
+    position: relative;
+    min-height: 300px;
+    overflow: hidden;
+}
+
+#map {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Selection Info Overlay */
+#selection-info {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(22, 33, 62, 0.95);
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #374151;
+    z-index: 1000;
+    min-width: 180px;
+}
+
+#selection-info h3 {
+    font-size: 0.9rem;
+    color: #60a5fa;
+    margin-bottom: 8px;
+}
+
+#selection-info p {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    margin: 4px 0;
+}
+
+#selection-info span {
+    color: #e8e8e8;
+}
+
+/* Status Panel */
+#status-panel {
+    background: #16213e;
+    padding: 8px 20px;
+    border-top: 1px solid #374151;
+    flex-shrink: 0;
+}
+
+#status-message {
+    font-size: 0.9rem;
+    color: #9ca3af;
+}
+
+#status-message.success {
+    color: #51CF66;
+}
+
+#status-message.error {
+    color: #f87171;
+}
+
+#status-message.loading {
+    color: #fbbf24;
+}
+
+#progress-bar {
+    height: 4px;
+    background: #374151;
+    border-radius: 2px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+#progress-fill {
+    height: 100%;
+    background: #60a5fa;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* Results Panel */
+#results-panel {
+    background: #0f172a;
+    padding: 12px 20px;
+    border-top: 1px solid #374151;
+    flex-shrink: 0;
+}
+
+#results-panel h3 {
+    font-size: 1rem;
+    color: #60a5fa;
+    margin-bottom: 12px;
+}
+
+#road-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.stat-item {
+    background: #16213e;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stat-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.stat-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+#category-display {
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #16213e;
+    border-radius: 4px;
+    border-left: 3px solid #60a5fa;
+}
+
+#category-display .category-label {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+#category-display .category-value {
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #60a5fa;
+}
+
+.result-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.result-actions button {
+    flex: 1;
+}
+
+/* Download buttons with tooltips */
+.download-btn {
+    position: relative;
+    background: #2563eb;
+}
+
+.download-btn:hover {
+    background: #3b82f6;
+}
+
+.download-btn .tooltip {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    padding: 14px 16px;
+    width: 320px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: #cbd5e1;
+    text-align: left;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 1000;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+}
+
+.download-btn .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #475569;
+}
+
+.download-btn:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+.download-btn .tooltip strong {
+    display: block;
+    color: #60a5fa;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.download-btn .tooltip em {
+    color: #94a3b8;
+    font-style: normal;
+}
+
+.download-btn .tooltip code {
+    display: block;
+    background: #0f172a;
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-top: 8px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.75rem;
+    color: #a5f3fc;
+    word-break: break-all;
+}
+
+.heightmap-btn {
+    background: #059669;
+}
+
+.heightmap-btn:hover {
+    background: #10b981;
+}
+
+/* Heightmap standalone panel */
+#heightmap-panel {
+    background: #0f172a;
+    padding: 10px 20px;
+    border-top: 1px solid #374151;
+    flex-shrink: 0;
+}
+
+.heightmap-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.heightmap-controls label {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.heightmap-controls .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.heightmap-controls .toggle-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.heightmap-controls select {
+    background: #16213e;
+    border: 1px solid #374151;
+    color: #e8e8e8;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+#heightmap-panel .download-btn {
+    flex: 1;
+    max-width: 240px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.heightmap-info {
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Tooltip that opens upward */
+.tooltip-up {
+    bottom: calc(100% + 12px) !important;
+    top: auto !important;
+}
+
+.tooltip-up::after {
+    top: 100% !important;
+    bottom: auto !important;
+    border-top-color: #475569 !important;
+    border-bottom-color: transparent !important;
+}
+
+/* Legend */
+#legend {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 10px;
+    background: rgba(22, 33, 62, 0.95);
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #374151;
+    z-index: 1000;
+}
+
+#legend h4 {
+    font-size: 0.8rem;
+    color: #60a5fa;
+    margin-bottom: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin: 4px 0;
+}
+
+.color-box {
+    width: 16px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Leaflet Overrides */
+.leaflet-container {
+    background: #0f172a;
+}
+
+.leaflet-control-zoom a {
+    background: #16213e !important;
+    color: #e8e8e8 !important;
+    border-color: #374151 !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: #374151 !important;
+}
+
+.leaflet-control-attribution {
+    background: rgba(22, 33, 62, 0.9) !important;
+    color: #9ca3af !important;
+}
+
+.leaflet-control-attribution a {
+    color: #60a5fa !important;
+}
+
+/* Selection Rectangle Styles */
+.selection-rectangle {
+    stroke: #60a5fa;
+    stroke-width: 2;
+    fill: rgba(96, 165, 250, 0.1);
+    stroke-dasharray: 5, 5;
+}
+
+/* Road Preview Styles */
+.road-preview {
+    opacity: 0.8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .control-group {
+        flex-wrap: wrap;
+    }
+
+    #legend {
+        top: 10px;
+        transform: none;
+        left: 10px;
+        font-size: 0.7rem;
+    }
+
+    #selection-info {
+        top: auto;
+        bottom: 10px;
+    }
+}

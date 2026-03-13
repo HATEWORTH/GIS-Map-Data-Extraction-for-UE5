@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Network Gallery - GIS Map Data</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+            color: #e8e8e8;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #374151;
+        }
+        h1 { color: #60a5fa; margin-bottom: 8px; }
+        .subtitle { color: #9ca3af; }
+        .stats { margin-top: 10px; color: #6b7280; font-size: 0.9rem; }
+
+        .category {
+            margin-bottom: 40px;
+        }
+        .category h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-left: 12px;
+            border-left: 4px solid;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 200px;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-image.no-image {
+            color: #4b5563;
+            font-size: 0.9rem;
+        }
+
+        .card-content {
+            padding: 15px;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            color: #f3f4f6;
+            margin-bottom: 8px;
+        }
+        .card-meta {
+            font-size: 0.85rem;
+            color: #9ca3af;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-meta span {
+            background: #1e293b;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .preprocessed {
+            background: #065f46 !important;
+            color: #6ee7b7;
+        }
+
+        .card-links {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+        }
+        .card-links a {
+            font-size: 0.8rem;
+            color: #60a5fa;
+            text-decoration: none;
+            padding: 4px 10px;
+            border: 1px solid #3b82f6;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .card-links a:hover {
+            background: #3b82f6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Road Network Gallery</h1>
+        <p class="subtitle">Extracted OpenStreetMap data ready for UE5 import</p>
+        <p class="stats">20 cities | 4 preprocessed with intersection data</p>
+    </header>
+
+    <div class="category">
+        <h2 style="border-color: #ef4444">Downtown / Urban Core (9)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Chicago_Loop_ue5.svg" alt="Chicago Loop">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Chicago Loop</div>
+                    <div class="card-meta">
+                        <span>9474 edges</span><span>2505 intersections</span><span>8.0km</span>
+                        <span class="preprocessed">preprocessed</span>
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Chicago_Loop_ue5_preprocessed.json" download>Download JSON</a>
+                        <a href="ue5_ready\Chicago_Loop_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Denver_Downtown_ue5.svg" alt="Denver Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Denver Downtown</div>
+                    <div class="card-meta">
+                        <span>16864 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Denver_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Denver_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Houston_Downtown_ue5.svg" alt="Houston Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Houston Downtown</div>
+                    <div class="card-meta">
+                        <span>9947 edges</span><span>6.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Houston_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Houston_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\LA_Downtown_ue5.svg" alt="LA Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">LA Downtown</div>
+                    <div class="card-meta">
+                        <span>15252 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\LA_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\LA_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Manhattan_Midtown_ue5.svg" alt="Manhattan Midtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Manhattan Midtown</div>
+                    <div class="card-meta">
+                        <span>1890 edges</span><span>759 intersections</span><span>4.0km</span>
+                        <span class="preprocessed">preprocessed</span>
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Manhattan_Midtown_ue5_preprocessed.json" download>Download JSON</a>
+                        <a href="ue5_ready\Manhattan_Midtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Miami_Downtown_ue5.svg" alt="Miami Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Miami Downtown</div>
+                    <div class="card-meta">
+                        <span>9171 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Miami_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Miami_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Phoenix_Downtown_ue5.svg" alt="Phoenix Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Phoenix Downtown</div>
+                    <div class="card-meta">
+                        <span>12634 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Phoenix_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Phoenix_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\San_Francisco_Downtown_ue5.svg" alt="San Francisco Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">San Francisco Downtown</div>
+                    <div class="card-meta">
+                        <span>10299 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\San_Francisco_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\San_Francisco_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Seattle_Downtown_ue5.svg" alt="Seattle Downtown">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Seattle Downtown</div>
+                    <div class="card-meta">
+                        <span>13300 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Seattle_Downtown_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Seattle_Downtown_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category">
+        <h2 style="border-color: #22c55e">Residential / Suburban (2)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Brooklyn_Park_Slope_ue5.svg" alt="Brooklyn Park Slope">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Brooklyn Park Slope</div>
+                    <div class="card-meta">
+                        <span>7819 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Brooklyn_Park_Slope_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Brooklyn_Park_Slope_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Houston_Katy_Suburbs_ue5.svg" alt="Houston Katy Suburbs">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Houston Katy Suburbs</div>
+                    <div class="card-meta">
+                        <span>4101 edges</span><span>6.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Houston_Katy_Suburbs_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Houston_Katy_Suburbs_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category">
+        <h2 style="border-color: #06b6d4">Neighborhood (1)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Rock_Island_IL_20th_St_ue5.svg" alt="Rock Island IL 20th St">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Rock Island IL 20th St</div>
+                    <div class="card-meta">
+                        <span>3935 edges</span><span>710 intersections</span><span>8.0km</span>
+                        <span class="preprocessed">preprocessed</span>
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Rock_Island_IL_20th_St_ue5_preprocessed.json" download>Download JSON</a>
+                        <a href="ue5_ready\Rock_Island_IL_20th_St_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category">
+        <h2 style="border-color: #8b5cf6">Highway Interchanges (1)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Atlanta_Highway_Hub_ue5.svg" alt="Atlanta Highway Hub">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Atlanta Highway Hub</div>
+                    <div class="card-meta">
+                        <span>21312 edges</span><span>10.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Atlanta_Highway_Hub_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Atlanta_Highway_Hub_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category">
+        <h2 style="border-color: #f59e0b">Rural / Farmland (5)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Iowa_Farmland_ue5.svg" alt="Iowa Farmland">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Iowa Farmland</div>
+                    <div class="card-meta">
+                        <span>8303 edges</span><span>20.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Iowa_Farmland_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Iowa_Farmland_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Kansas_Farmland_Wide_ue5.svg" alt="Kansas Farmland">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Kansas Farmland</div>
+                    <div class="card-meta">
+                        <span>147 edges</span><span>4.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Kansas_Farmland_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Kansas_Farmland_Wide_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image no-image">
+                    <span>No preview</span>
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Kansas Farmland Wide</div>
+                    <div class="card-meta">
+                        <span>4595 edges</span><span>244 intersections</span><span>20.0km</span>
+                        <span class="preprocessed">preprocessed</span>
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Kansas_Farmland_Wide_ue5_preprocessed.json" download>Download JSON</a>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Nebraska_Plains_XL_ue5.svg" alt="Nebraska Plains XL">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Nebraska Plains XL</div>
+                    <div class="card-meta">
+                        <span>4256 edges</span><span>40.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Nebraska_Plains_XL_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Nebraska_Plains_XL_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Texas_Panhandle_ue5.svg" alt="Texas Panhandle">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Texas Panhandle</div>
+                    <div class="card-meta">
+                        <span>21847 edges</span><span>30.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Texas_Panhandle_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Texas_Panhandle_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="category">
+        <h2 style="border-color: #6b7280">Mixed / Other (2)</h2>
+        <div class="grid">
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Pasadena_CA_ue5.svg" alt="Pasadena CA">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Pasadena CA</div>
+                    <div class="card-meta">
+                        <span>9537 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Pasadena_CA_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Pasadena_CA_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-image">
+                    <img src="ue5_ready\Scottsdale_AZ_ue5.svg" alt="Scottsdale AZ">
+                </div>
+                <div class="card-content">
+                    <div class="card-title">Scottsdale AZ</div>
+                    <div class="card-meta">
+                        <span>10090 edges</span><span>8.0km</span>
+                        
+                    </div>
+                    <div class="card-links">
+                        <a href="ue5_ready\Scottsdale_AZ_ue5.json" download>Download JSON</a>
+                        <a href="ue5_ready\Scottsdale_AZ_ue5.svg" target="_blank">View SVG</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

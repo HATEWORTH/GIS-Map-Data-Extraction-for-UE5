@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIS Road Data Extractor - UE5</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin="">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header>
+            <h1>GIS Road Data Extractor</h1>
+            <p>Extract OpenStreetMap road data for UE5 import</p>
+        </header>
+
+        <!-- Controls Panel -->
+        <div id="controls">
+            <div class="control-group">
+                <label for="city-select">Quick Select City:</label>
+                <select id="city-select">
+                    <option value="">-- Select a city --</option>
+                    <optgroup label="Downtown">
+                        <option value="40.7580,-73.9855">Manhattan, NYC (Midtown)</option>
+                        <option value="41.8819,-87.6278">Chicago (Loop)</option>
+                        <option value="29.7604,-95.3698">Houston (Downtown)</option>
+                        <option value="33.4484,-112.0740">Phoenix (Downtown)</option>
+                        <option value="34.0522,-118.2437">Los Angeles (Downtown)</option>
+                        <option value="37.7879,-122.4075">San Francisco</option>
+                        <option value="39.7392,-104.9903">Denver</option>
+                        <option value="47.6062,-122.3321">Seattle</option>
+                    </optgroup>
+                    <optgroup label="Residential">
+                        <option value="40.6782,-73.9442">Brooklyn (Park Slope)</option>
+                        <option value="29.7172,-95.4324">Houston (West University)</option>
+                        <option value="33.4942,-111.9261">Scottsdale, AZ</option>
+                        <option value="34.1478,-118.1445">Pasadena, CA</option>
+                    </optgroup>
+                    <optgroup label="Rural">
+                        <option value="38.8500,-99.3500">Kansas Farmland</option>
+                        <option value="42.0308,-93.6319">Iowa Farmland</option>
+                        <option value="40.8500,-99.8500">Nebraska Plains</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="control-group coordinates">
+                <div>
+                    <label for="lat-input">Latitude:</label>
+                    <input type="number" id="lat-input" step="0.0001" value="40.7580">
+                </div>
+                <div>
+                    <label for="lon-input">Longitude:</label>
+                    <input type="number" id="lon-input" step="0.0001" value="-73.9855">
+                </div>
+                <button id="goto-btn">Go</button>
+            </div>
+
+            <div class="control-group">
+                <label for="chunk-size">Chunk Size:</label>
+                <select id="chunk-size">
+                    <option value="2">2 km × 2 km</option>
+                    <option value="4">4 km × 4 km</option>
+                    <option value="8" selected>8 km × 8 km (Default)</option>
+                    <option value="10">10 km × 10 km</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <button id="extract-btn" class="primary">Extract Roads</button>
+                <button id="preview-btn">Preview Only</button>
+            </div>
+        </div>
+
+        <!-- Map Container -->
+        <div id="map-container">
+            <div id="map"></div>
+
+            <!-- Selection Info Overlay -->
+            <div id="selection-info" class="hidden">
+                <h3>Selection</h3>
+                <p>Center: <span id="sel-center">-</span></p>
+                <p>Size: <span id="sel-size">8 km × 8 km</span></p>
+                <p>Area: <span id="sel-area">64 km²</span></p>
+            </div>
+
+            <!-- Legend (inside map container) -->
+            <div id="legend">
+                <h4>Road Types</h4>
+                <div class="legend-item"><span class="color-box" style="background:#E31C1C"></span>Interstate/Freeway</div>
+                <div class="legend-item"><span class="color-box" style="background:#F48C06"></span>Highway/Expressway</div>
+                <div class="legend-item"><span class="color-box" style="background:#FFC300"></span>Principal Arterial</div>
+                <div class="legend-item"><span class="color-box" style="background:#FFE066"></span>Minor Arterial</div>
+                <div class="legend-item"><span class="color-box" style="background:#74C0FC"></span>Collector</div>
+                <div class="legend-item"><span class="color-box" style="background:#51CF66"></span>Residential</div>
+                <div class="legend-item"><span class="color-box" style="background:#868E96"></span>Service/Alley</div>
+            </div>
+        </div>
+
+        <!-- Status Panel -->
+        <div id="status-panel">
+            <div id="status-message">Click on the map to place extraction area</div>
+            <div id="progress-bar" class="hidden">
+                <div id="progress-fill"></div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div id="results-panel" class="hidden">
+            <h3>Extraction Results</h3>
+            <div id="road-stats"></div>
+            <div id="category-display"></div>
+            <div class="result-actions">
+                <button id="download-geojson" class="download-btn" data-format="geojson">
+                    Download GeoJSON
+                    <span class="tooltip">
+                        <strong>GeoJSON Format</strong><br>
+                        Standard geographic data format with lat/lon coordinates.<br><br>
+                        <em>Use for:</em> GIS software (QGIS, ArcGIS), web maps, further processing.<br><br>
+                        <code>Load in QGIS: Layer → Add Layer → Add Vector Layer</code>
+                    </span>
+                </button>
+                <button id="download-ue5" class="download-btn" data-format="ue5">
+                    Download UE5 JSON
+                    <span class="tooltip">
+                        <strong>UE5-Ready Format</strong><br>
+                        Converted to Unreal Units (1m = 100 UU) with node/edge structure.<br><br>
+                        <em>Use for:</em> Direct import into Unreal Engine 5 via RoadNetworkSpawner.<br><br>
+                        <code>URoadNetworkSpawner::SpawnFromFile(WorldContext, FilePath, Config)</code>
+                    </span>
+                </button>
+            </div>
+            <!-- Heightmap button (disabled for now)
+            <div class="result-actions" style="margin-top: 10px;">
+                <button id="download-heightmap" class="download-btn heightmap-btn">
+                    Download Heightmap
+                    <span class="tooltip">
+                        <strong>Terrain Heightmap (PNG)</strong><br>
+                        Grayscale elevation data for the selected area. No roads included.<br><br>
+                        <em>Use for:</em> UE5 Landscape import, terrain generation, 3D modeling.<br><br>
+                        <code>UE5: Landscape Mode → Import → Select PNG heightmap</code>
+                    </span>
+                </button>
+            </div>
+            -->
+        </div>
+
+        <!-- Heightmap Panel (disabled for now) -->
+        <div id="heightmap-panel" class="hidden">
+            <div class="heightmap-controls">
+                <label for="heightmap-resolution">Resolution:</label>
+                <select id="heightmap-resolution">
+                    <option value="14">Standard (~9m/pixel)</option>
+                    <option value="15" selected>High (~4.5m/pixel)</option>
+                    <option value="max">Maximum (~2.2m/pixel)</option>
+                </select>
+
+                <label for="heightmap-contrast">Detail:</label>
+                <select id="heightmap-contrast">
+                    <option value="raw">Raw (actual elevation)</option>
+                    <option value="enhanced" selected>Enhanced (auto-contrast)</option>
+                    <option value="extreme">Extreme (max detail)</option>
+                    <option value="histogram">Histogram EQ (all detail)</option>
+                </select>
+
+                <label class="toggle-label">
+                    <input type="checkbox" id="heightmap-invert">
+                    Invert
+                </label>
+
+                <button id="download-heightmap-standalone" class="download-btn heightmap-btn">
+                    Download Heightmap
+                    <span class="tooltip tooltip-up">
+                        <strong>Terrain Heightmap (PNG)</strong><br>
+                        Grayscale elevation data for the selected area. No roads needed.<br><br>
+                        <em>Use for:</em> UE5 Landscape import, terrain generation, 3D modeling.<br><br>
+                        <code>UE5: Landscape Mode → Import → Select PNG heightmap</code>
+                    </span>
+                </button>
+            </div>
+            <div id="heightmap-info" class="heightmap-info"></div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <script src="app.js"></script>
+</body>
+</html>

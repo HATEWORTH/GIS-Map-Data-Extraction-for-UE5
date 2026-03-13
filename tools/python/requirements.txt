@@ -1,0 +1,19 @@
+# GIS Map Data Extraction Pipeline - Python Dependencies
+
+# HTTP requests for Overpass API
+requests>=2.28.0
+
+# GeoJSON handling
+geojson>=3.0.0
+
+# Geographic calculations
+pyproj>=3.4.0
+
+# Data processing
+shapely>=2.0.0
+
+# Progress bars for batch processing
+tqdm>=4.64.0
+
+# JSON schema validation (optional)
+jsonschema>=4.17.0

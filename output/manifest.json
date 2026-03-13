@@ -1,0 +1,331 @@
+{
+  "generated": true,
+  "cities": [
+    {
+      "id": "Atlanta_Highway_Hub",
+      "name": "Atlanta Highway Hub",
+      "category": "highway",
+      "json_file": "ue5_ready\\Atlanta_Highway_Hub_ue5.json",
+      "svg_file": "ue5_ready\\Atlanta_Highway_Hub_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Atlanta_Highway_Hub",
+        "size_km": 10.0,
+        "road_count": 0,
+        "edge_count": 21312,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Brooklyn_Park_Slope",
+      "name": "Brooklyn Park Slope",
+      "category": "residential",
+      "json_file": "ue5_ready\\Brooklyn_Park_Slope_ue5.json",
+      "svg_file": "ue5_ready\\Brooklyn_Park_Slope_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Brooklyn_Park_Slope",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 7819,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Chicago_Loop",
+      "name": "Chicago Loop",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Chicago_Loop_ue5_preprocessed.json",
+      "svg_file": "ue5_ready\\Chicago_Loop_ue5.svg",
+      "preprocessed": true,
+      "metadata": {
+        "city": "Chicago_Loop",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 9474,
+        "intersection_count": 2505
+      }
+    },
+    {
+      "id": "Denver_Downtown",
+      "name": "Denver Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Denver_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\Denver_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Denver_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 16864,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Houston_Downtown",
+      "name": "Houston Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Houston_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\Houston_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Houston_Downtown",
+        "size_km": 6.0,
+        "road_count": 0,
+        "edge_count": 9947,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Houston_Katy_Suburbs",
+      "name": "Houston Katy Suburbs",
+      "category": "residential",
+      "json_file": "ue5_ready\\Houston_Katy_Suburbs_ue5.json",
+      "svg_file": "ue5_ready\\Houston_Katy_Suburbs_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Houston_Katy_Suburbs",
+        "size_km": 6.0,
+        "road_count": 0,
+        "edge_count": 4101,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Iowa_Farmland",
+      "name": "Iowa Farmland",
+      "category": "rural",
+      "json_file": "ue5_ready\\Iowa_Farmland_ue5.json",
+      "svg_file": "ue5_ready\\Iowa_Farmland_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Iowa_Farmland",
+        "size_km": 20.0,
+        "road_count": 0,
+        "edge_count": 8303,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Kansas_Farmland",
+      "name": "Kansas Farmland",
+      "category": "rural",
+      "json_file": "ue5_ready\\Kansas_Farmland_ue5.json",
+      "svg_file": "ue5_ready\\Kansas_Farmland_Wide_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Kansas_Farmland",
+        "size_km": 4.0,
+        "road_count": 0,
+        "edge_count": 147,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Kansas_Farmland_Wide",
+      "name": "Kansas Farmland Wide",
+      "category": "rural",
+      "json_file": "ue5_ready\\Kansas_Farmland_Wide_ue5_preprocessed.json",
+      "svg_file": null,
+      "preprocessed": true,
+      "metadata": {
+        "city": "Kansas_Farmland_Wide",
+        "size_km": 20.0,
+        "road_count": 0,
+        "edge_count": 4595,
+        "intersection_count": 244
+      }
+    },
+    {
+      "id": "LA_Downtown",
+      "name": "LA Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\LA_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\LA_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "LA_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 15252,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Manhattan_Midtown",
+      "name": "Manhattan Midtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Manhattan_Midtown_ue5_preprocessed.json",
+      "svg_file": "ue5_ready\\Manhattan_Midtown_ue5.svg",
+      "preprocessed": true,
+      "metadata": {
+        "city": "Manhattan_Midtown",
+        "size_km": 4.0,
+        "road_count": 0,
+        "edge_count": 1890,
+        "intersection_count": 759
+      }
+    },
+    {
+      "id": "Miami_Downtown",
+      "name": "Miami Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Miami_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\Miami_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Miami_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 9171,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Nebraska_Plains_XL",
+      "name": "Nebraska Plains XL",
+      "category": "rural",
+      "json_file": "ue5_ready\\Nebraska_Plains_XL_ue5.json",
+      "svg_file": "ue5_ready\\Nebraska_Plains_XL_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Nebraska_Plains_XL",
+        "size_km": 40.0,
+        "road_count": 0,
+        "edge_count": 4256,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Pasadena_CA",
+      "name": "Pasadena CA",
+      "category": "mixed",
+      "json_file": "ue5_ready\\Pasadena_CA_ue5.json",
+      "svg_file": "ue5_ready\\Pasadena_CA_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Pasadena_CA",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 9537,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Phoenix_Downtown",
+      "name": "Phoenix Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Phoenix_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\Phoenix_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Phoenix_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 12634,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Rock_Island_IL_20th_St",
+      "name": "Rock Island IL 20th St",
+      "category": "neighborhood",
+      "json_file": "ue5_ready\\Rock_Island_IL_20th_St_ue5_preprocessed.json",
+      "svg_file": "ue5_ready\\Rock_Island_IL_20th_St_ue5.svg",
+      "preprocessed": true,
+      "metadata": {
+        "city": "Rock_Island_IL_20th_St",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 3935,
+        "intersection_count": 710
+      }
+    },
+    {
+      "id": "San_Francisco_Downtown",
+      "name": "San Francisco Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\San_Francisco_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\San_Francisco_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "San_Francisco_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 10299,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Scottsdale_AZ",
+      "name": "Scottsdale AZ",
+      "category": "mixed",
+      "json_file": "ue5_ready\\Scottsdale_AZ_ue5.json",
+      "svg_file": "ue5_ready\\Scottsdale_AZ_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Scottsdale_AZ",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 10090,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Seattle_Downtown",
+      "name": "Seattle Downtown",
+      "category": "downtown",
+      "json_file": "ue5_ready\\Seattle_Downtown_ue5.json",
+      "svg_file": "ue5_ready\\Seattle_Downtown_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Seattle_Downtown",
+        "size_km": 8.0,
+        "road_count": 0,
+        "edge_count": 13300,
+        "intersection_count": 0
+      }
+    },
+    {
+      "id": "Texas_Panhandle",
+      "name": "Texas Panhandle",
+      "category": "rural",
+      "json_file": "ue5_ready\\Texas_Panhandle_ue5.json",
+      "svg_file": "ue5_ready\\Texas_Panhandle_ue5.svg",
+      "preprocessed": false,
+      "metadata": {
+        "city": "Texas_Panhandle",
+        "size_km": 30.0,
+        "road_count": 0,
+        "edge_count": 21847,
+        "intersection_count": 0
+      }
+    }
+  ],
+  "categories": {
+    "downtown": {
+      "title": "Downtown / Urban Core",
+      "color": "#ef4444"
+    },
+    "residential": {
+      "title": "Residential / Suburban",
+      "color": "#22c55e"
+    },
+    "rural": {
+      "title": "Rural / Farmland",
+      "color": "#f59e0b"
+    },
+    "highway": {
+      "title": "Highway Interchanges",
+      "color": "#8b5cf6"
+    },
+    "neighborhood": {
+      "title": "Neighborhood",
+      "color": "#06b6d4"
+    },
+    "mixed": {
+      "title": "Mixed / Other",
+      "color": "#6b7280"
+    }
+  }
+}

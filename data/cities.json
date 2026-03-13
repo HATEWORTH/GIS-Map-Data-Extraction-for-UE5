@@ -1,0 +1,238 @@
+{
+  "version": "1.0",
+  "description": "Pre-configured extraction points for US cities",
+  "default_size_km": 8,
+  "locations": [
+    {
+      "name": "Manhattan_Midtown",
+      "lat": 40.7580,
+      "lon": -73.9855,
+      "category": "downtown",
+      "notes": "Dense grid, major arterials, Times Square area"
+    },
+    {
+      "name": "Manhattan_Financial",
+      "lat": 40.7074,
+      "lon": -74.0113,
+      "category": "downtown",
+      "notes": "Lower Manhattan, irregular grid"
+    },
+    {
+      "name": "Chicago_Loop",
+      "lat": 41.8819,
+      "lon": -87.6278,
+      "category": "downtown",
+      "notes": "Classic American grid, dense arterials"
+    },
+    {
+      "name": "Chicago_Magnificent_Mile",
+      "lat": 41.8950,
+      "lon": -87.6245,
+      "category": "downtown",
+      "notes": "North Michigan Ave area"
+    },
+    {
+      "name": "Houston_Downtown",
+      "lat": 29.7604,
+      "lon": -95.3698,
+      "category": "downtown",
+      "notes": "Texas grid, wide arterials"
+    },
+    {
+      "name": "Phoenix_Downtown",
+      "lat": 33.4484,
+      "lon": -112.0740,
+      "category": "downtown",
+      "notes": "Large blocks, very regular grid"
+    },
+    {
+      "name": "LA_Downtown",
+      "lat": 34.0522,
+      "lon": -118.2437,
+      "category": "downtown",
+      "notes": "Mixed grid, highway interchanges"
+    },
+    {
+      "name": "San_Francisco_Downtown",
+      "lat": 37.7879,
+      "lon": -122.4075,
+      "category": "downtown",
+      "notes": "Steep hills, irregular blocks"
+    },
+    {
+      "name": "Brooklyn_Williamsburg",
+      "lat": 40.7081,
+      "lon": -73.9571,
+      "category": "residential",
+      "notes": "Dense residential, mixed use"
+    },
+    {
+      "name": "Brooklyn_Park_Slope",
+      "lat": 40.6710,
+      "lon": -73.9814,
+      "category": "residential",
+      "notes": "Brownstone neighborhood"
+    },
+    {
+      "name": "Houston_West_University",
+      "lat": 29.7172,
+      "lon": -95.4324,
+      "category": "residential",
+      "notes": "Affluent residential grid"
+    },
+    {
+      "name": "Houston_Katy",
+      "lat": 29.7858,
+      "lon": -95.8245,
+      "category": "residential",
+      "notes": "Suburban development"
+    },
+    {
+      "name": "Phoenix_Scottsdale",
+      "lat": 33.4942,
+      "lon": -111.9261,
+      "category": "residential",
+      "notes": "Desert suburban grid"
+    },
+    {
+      "name": "Phoenix_Mesa",
+      "lat": 33.4152,
+      "lon": -111.8315,
+      "category": "residential",
+      "notes": "East valley residential"
+    },
+    {
+      "name": "LA_Pasadena",
+      "lat": 34.1478,
+      "lon": -118.1445,
+      "category": "residential",
+      "notes": "Mixed residential/commercial"
+    },
+    {
+      "name": "Chicago_Oak_Park",
+      "lat": 41.8850,
+      "lon": -87.7845,
+      "category": "residential",
+      "notes": "Inner ring suburb"
+    },
+    {
+      "name": "Kansas_Ellis_County",
+      "lat": 38.8500,
+      "lon": -99.3500,
+      "category": "rural",
+      "notes": "Western Kansas farmland"
+    },
+    {
+      "name": "Kansas_Ness_County",
+      "lat": 38.4500,
+      "lon": -99.9000,
+      "category": "rural",
+      "notes": "Sparse rural roads"
+    },
+    {
+      "name": "Iowa_Story_County",
+      "lat": 42.0308,
+      "lon": -93.6319,
+      "category": "rural",
+      "notes": "Central Iowa farmland"
+    },
+    {
+      "name": "Nebraska_Dawson_County",
+      "lat": 40.8500,
+      "lon": -99.8500,
+      "category": "rural",
+      "notes": "Nebraska plains"
+    },
+    {
+      "name": "Texas_Panhandle",
+      "lat": 35.2000,
+      "lon": -101.8300,
+      "category": "rural",
+      "notes": "Texas panhandle ranch country"
+    },
+    {
+      "name": "Chicago_Evanston_Edge",
+      "lat": 42.0451,
+      "lon": -87.6877,
+      "category": "downtown_residential",
+      "notes": "University area, mixed density"
+    },
+    {
+      "name": "Houston_Medical_Center",
+      "lat": 29.7069,
+      "lon": -95.3994,
+      "category": "downtown_residential",
+      "notes": "Medical district, institutional"
+    },
+    {
+      "name": "Phoenix_Tempe",
+      "lat": 33.4255,
+      "lon": -111.9400,
+      "category": "downtown_residential",
+      "notes": "ASU area, mixed use"
+    },
+    {
+      "name": "LA_Glendale",
+      "lat": 34.1425,
+      "lon": -118.2551,
+      "category": "downtown_residential",
+      "notes": "Mid-size city grid"
+    },
+    {
+      "name": "Houston_Cypress",
+      "lat": 29.9691,
+      "lon": -95.6970,
+      "category": "residential_rural",
+      "notes": "Northwest suburban edge"
+    },
+    {
+      "name": "Phoenix_Buckeye",
+      "lat": 33.3703,
+      "lon": -112.5838,
+      "category": "residential_rural",
+      "notes": "Western edge development"
+    },
+    {
+      "name": "Chicago_Joliet_Edge",
+      "lat": 41.5250,
+      "lon": -88.0817,
+      "category": "residential_rural",
+      "notes": "Southwest suburban transition"
+    },
+    {
+      "name": "LA_Palmdale",
+      "lat": 34.5794,
+      "lon": -118.1165,
+      "category": "residential_rural",
+      "notes": "High desert development"
+    },
+    {
+      "name": "Denver_Downtown",
+      "lat": 39.7392,
+      "lon": -104.9903,
+      "category": "downtown",
+      "notes": "Colorado capital, grid downtown"
+    },
+    {
+      "name": "Seattle_Downtown",
+      "lat": 47.6062,
+      "lon": -122.3321,
+      "category": "downtown",
+      "notes": "Hilly terrain, waterfront"
+    },
+    {
+      "name": "Miami_Downtown",
+      "lat": 25.7617,
+      "lon": -80.1918,
+      "category": "downtown",
+      "notes": "Coastal grid, bridges"
+    },
+    {
+      "name": "Atlanta_Downtown",
+      "lat": 33.7490,
+      "lon": -84.3880,
+      "category": "downtown",
+      "notes": "Highway interchange hub"
+    }
+  ]
+}
