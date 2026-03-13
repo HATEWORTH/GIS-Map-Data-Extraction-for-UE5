@@ -2,6 +2,8 @@
 
 Extract real US city road data from OpenStreetMap for UE5 spline import.
 
+**Try it online:** https://hateworth.github.io/GIS-Map-Data-Extraction-for-UE5/
+
 ## Overview
 
 This pipeline extracts 8×8 km chunks of road network data from OpenStreetMap, classifies roads by type with color coding, and outputs UE5-compatible JSON for spline generation.
