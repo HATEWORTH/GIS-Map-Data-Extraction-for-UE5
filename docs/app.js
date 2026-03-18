@@ -472,7 +472,8 @@ function convertToUE5(geojson) {
         const x = R * (lonRad - centerLonRad) * Math.cos(centerLatRad);
         const y = R * (latRad - centerLatRad);
 
-        return [x * UE5_SCALE, y * UE5_SCALE];
+        // Negate Y so north = -Y, matching UE5 landscape heightmap orientation
+        return [x * UE5_SCALE, -y * UE5_SCALE];
     }
 
     // Build nodes

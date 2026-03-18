@@ -61,7 +61,8 @@ def meters_to_ue5(x: float, y: float) -> Tuple[float, float]:
     Returns:
         Tuple of (x, y) in Unreal Units
     """
-    return (x * UE5_SCALE, y * UE5_SCALE)
+    # Negate Y so north = -Y, matching UE5 landscape heightmap orientation
+    return (x * UE5_SCALE, -y * UE5_SCALE)
 
 
 def simplify_polyline(points: List[List[float]], tolerance: float = 1.0) -> List[List[float]]:
