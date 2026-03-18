@@ -723,8 +723,7 @@ function setupEventHandlers() {
     // All heightmap controls trigger info update
     const hmControls = [
         'heightmap-size-mode', 'heightmap-size', 'heightmap-bitdepth',
-        'heightmap-contrast', 'heightmap-invert',
-        'gaea-terrain-scale', 'gaea-vertical-scale', 'gaea-water-level'
+        'heightmap-contrast', 'heightmap-invert'
     ];
     hmControls.forEach(id => {
         const el = document.getElementById(id);
@@ -814,11 +813,8 @@ function updateHeightmapInfo() {
         ? ((outputSize * outputSize * 2) / (1024 * 1024)).toFixed(1)
         : ((outputSize * outputSize) / (1024 * 1024)).toFixed(1);
 
-    const terrainScale = document.getElementById('gaea-terrain-scale')?.value;
-    const scaleLabel = terrainScale === 'auto' ? `${currentChunkSize} km` : `${terrainScale} km`;
-
     infoEl.innerHTML = `<strong>${outputSize} x ${outputSize}px</strong> | ${bitLabel} | ~${metersPerPixel.toFixed(1)}m/pixel | ~${fileSizeEstMB} MB (uncompressed)<br>` +
-        `Source: ${totalTiles} tiles (zoom ${zoom}, ${sourceWidth}x${sourceHeight}px) | Terrain: ${scaleLabel}`;
+        `Source: ${totalTiles} tiles (zoom ${zoom}, ${sourceWidth}x${sourceHeight}px) | Terrain: ${currentChunkSize} km`;
 }
 
 // Heightmap generation using terrain tiles
@@ -1019,8 +1015,6 @@ async function generateHeightmap() {
     const bitDepth = parseInt(document.getElementById('heightmap-bitdepth')?.value || '16');
     const contrastMode = document.getElementById('heightmap-contrast')?.value || 'smart';
     const shouldInvert = document.getElementById('heightmap-invert')?.checked || false;
-    const waterLevel = parseFloat(document.getElementById('gaea-water-level')?.value || '0');
-    const clampSea = document.getElementById('gaea-clamp-sea')?.checked || false;
 
     // Always fetch at max zoom for best source quality
     const zoom = 15;
@@ -1101,14 +1095,6 @@ async function generateHeightmap() {
     }
 
     if (minElev === Infinity) { minElev = 0; maxElev = 100; }
-
-    // Apply water level clamping
-    if (clampSea) {
-        for (let i = 0; i < fullElevation.length; i++) {
-            if (fullElevation[i] < waterLevel) fullElevation[i] = waterLevel;
-        }
-        if (minElev < waterLevel) minElev = waterLevel;
-    }
 
     console.log(`Elevation range: ${minElev.toFixed(1)}m to ${maxElev.toFixed(1)}m`);
     setStatus(`Elevation: ${minElev.toFixed(0)}m to ${maxElev.toFixed(0)}m. Cropping...`, 'loading');
@@ -1314,9 +1300,7 @@ async function downloadHeightmap() {
         const range = result.maxElevation - result.minElevation;
         setStatus(`Heightmap ready: ${result.outputSize}x${result.outputSize}px ${result.bitDepth}-bit | ${result.minElevation.toFixed(0)}m to ${result.maxElevation.toFixed(0)}m (${range.toFixed(0)}m range)`, 'success');
 
-        // Store last result and show Gaea reference
         lastHeightmapResult = result;
-        showGaeaReference(result);
 
         const bitLabel = result.bitDepth === 16 ? '16bit' : '8bit';
         const filename = `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${result.outputSize}px_${bitLabel}.png`;
@@ -1365,61 +1349,6 @@ async function downloadHeightmap() {
 
 // Last heightmap result for Gaea export
 let lastHeightmapResult = null;
-
-// Show Gaea 2 reference guide in-panel after heightmap generation
-function showGaeaReference(result) {
-    const refPanel = document.getElementById('gaea-reference');
-    const refGrid = document.getElementById('gaea-ref-grid');
-    if (!refPanel || !refGrid) return;
-
-    const terrainScaleSetting = document.getElementById('gaea-terrain-scale')?.value || 'auto';
-    const verticalScaleSetting = document.getElementById('gaea-vertical-scale')?.value || 'auto';
-
-    const terrainScaleKm = terrainScaleSetting === 'auto' ? currentChunkSize : parseFloat(terrainScaleSetting);
-    const terrainScaleM = terrainScaleKm * 1000;
-
-    const elevRange = result.maxElevation - result.minElevation;
-    const verticalScaleM = verticalScaleSetting === 'auto'
-        ? Math.max(100, Math.ceil(elevRange / 100) * 100 * 1.2)
-        : parseFloat(verticalScaleSetting);
-
-    const UE5_SCALE = 100;
-    const landscapeSizeUU = terrainScaleM * UE5_SCALE;
-    const zScaleUE5 = (elevRange * UE5_SCALE) / 512;
-    const xyScale = (landscapeSizeUU / result.outputSize).toFixed(2);
-
-    const buildRes = result.outputSize >= 4033 ? 'Ultra' : result.outputSize >= 2017 ? 'High' : 'Normal';
-
-    refGrid.innerHTML = `
-        <div class="gaea-ref-section">
-            <div class="gaea-ref-title">Gaea 2 &mdash; Terrain Definition</div>
-            <div class="gaea-ref-row"><span>Resolution</span><span>${result.outputSize}</span></div>
-            <div class="gaea-ref-row"><span>Terrain Scale</span><span>${terrainScaleM} m (${terrainScaleKm} km)</span></div>
-            <div class="gaea-ref-row"><span>Vertical Scale</span><span>${verticalScaleM} m</span></div>
-            <div class="gaea-ref-row"><span>Build Quality</span><span>${buildRes}</span></div>
-        </div>
-        <div class="gaea-ref-section">
-            <div class="gaea-ref-title">Gaea 2 &mdash; File Node</div>
-            <div class="gaea-ref-row"><span>Import as</span><span>16-bit Grayscale PNG</span></div>
-            <div class="gaea-ref-row"><span>Elevation Range</span><span>${result.minElevation.toFixed(1)}m &ndash; ${result.maxElevation.toFixed(1)}m</span></div>
-            <div class="gaea-ref-row"><span>Elevation Spread</span><span>${elevRange.toFixed(1)} m</span></div>
-        </div>
-        <div class="gaea-ref-section">
-            <div class="gaea-ref-title">UE5 &mdash; Landscape Import</div>
-            <div class="gaea-ref-row"><span>Scale X, Y</span><span>${xyScale}</span></div>
-            <div class="gaea-ref-row"><span>Scale Z</span><span>${zScaleUE5.toFixed(2)}</span></div>
-            <div class="gaea-ref-row"><span>Z Offset</span><span>${Math.round(result.minElevation * UE5_SCALE)} UU</span></div>
-            <div class="gaea-ref-row"><span>Landscape Size</span><span>${result.outputSize} x ${result.outputSize}</span></div>
-        </div>
-        <div class="gaea-ref-section">
-            <div class="gaea-ref-title">Geographic Reference</div>
-            <div class="gaea-ref-row"><span>Center</span><span>${currentCenter.lat.toFixed(4)}, ${currentCenter.lon.toFixed(4)}</span></div>
-            <div class="gaea-ref-row"><span>Area</span><span>${currentChunkSize} x ${currentChunkSize} km</span></div>
-        </div>
-    `;
-
-    refPanel.classList.remove('hidden');
-}
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {

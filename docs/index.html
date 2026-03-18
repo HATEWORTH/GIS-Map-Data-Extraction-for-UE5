@@ -223,65 +223,10 @@
                         </div>
                     </div>
 
-                    <!-- Gaea 2 Settings Section -->
-                    <div class="hm-section-divider">
-                        <span>Gaea 2 Integration</span>
-                    </div>
-
-                    <div class="hm-control-row">
-                        <div class="hm-control">
-                            <label for="gaea-terrain-scale">Terrain Scale:</label>
-                            <select id="gaea-terrain-scale">
-                                <option value="auto" selected>Auto (from chunk size)</option>
-                                <option value="2">2 km</option>
-                                <option value="4">4 km</option>
-                                <option value="8">8 km</option>
-                                <option value="10">10 km</option>
-                                <option value="16">16 km</option>
-                                <option value="32">32 km</option>
-                            </select>
-                        </div>
-                        <div class="hm-control">
-                            <label for="gaea-vertical-scale">Vertical Scale:</label>
-                            <select id="gaea-vertical-scale">
-                                <option value="auto" selected>Auto (from elevation)</option>
-                                <option value="100">100 m</option>
-                                <option value="500">500 m</option>
-                                <option value="1000">1000 m</option>
-                                <option value="2000">2000 m</option>
-                                <option value="4000">4000 m</option>
-                            </select>
-                        </div>
-                        <div class="hm-control">
-                            <label for="gaea-water-level">Water Level (m):</label>
-                            <input type="number" id="gaea-water-level" value="0" step="1" style="width:70px">
-                        </div>
-                    </div>
-
-                    <div class="hm-control-row">
-                        <div class="hm-control">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="gaea-export-settings" checked>
-                                Export Gaea settings file (.json)
-                            </label>
-                        </div>
-                        <div class="hm-control">
-                            <label class="toggle-label">
-                                <input type="checkbox" id="gaea-clamp-sea">
-                                Clamp below water level
-                            </label>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Info display -->
                 <div id="heightmap-info" class="heightmap-info"></div>
-
-                <!-- Gaea 2 reference guide (shown after heightmap generation) -->
-                <div id="gaea-reference" class="gaea-reference hidden">
-                    <div class="gaea-ref-header">Gaea 2 Setup Reference</div>
-                    <div class="gaea-ref-grid" id="gaea-ref-grid"></div>
-                </div>
 
                 <!-- Action buttons -->
                 <div class="heightmap-actions">
