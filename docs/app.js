@@ -592,15 +592,18 @@ function setupEventHandlers() {
         }
     });
 
-    // Download Heightmap (in results panel) - disabled for now
-    const heightmapBtn = document.getElementById('download-heightmap');
-    if (heightmapBtn) {
-        heightmapBtn.addEventListener('click', async () => {
-            await downloadHeightmap();
+    // Heightmap panel toggle
+    const heightmapToggle = document.getElementById('heightmap-toggle');
+    const heightmapHeader = document.querySelector('.heightmap-header');
+    const heightmapBody = document.getElementById('heightmap-body');
+    if (heightmapHeader && heightmapBody) {
+        heightmapHeader.addEventListener('click', () => {
+            heightmapBody.classList.toggle('collapsed');
+            heightmapToggle?.classList.toggle('collapsed');
         });
     }
 
-    // Download Heightmap (standalone - always visible) - disabled for now
+    // Download Heightmap
     const heightmapStandaloneBtn = document.getElementById('download-heightmap-standalone');
     if (heightmapStandaloneBtn) {
         heightmapStandaloneBtn.addEventListener('click', async () => {
@@ -608,12 +611,81 @@ function setupEventHandlers() {
         });
     }
 
-    // Update heightmap info when resolution changes - disabled for now
-    const heightmapResolution = document.getElementById('heightmap-resolution');
-    if (heightmapResolution) {
-        heightmapResolution.addEventListener('change', updateHeightmapInfo);
-        setTimeout(updateHeightmapInfo, 100);
+    // Download Gaea Settings
+    const gaeaSettingsBtn = document.getElementById('download-gaea-settings');
+    if (gaeaSettingsBtn) {
+        gaeaSettingsBtn.addEventListener('click', async () => {
+            await downloadGaeaSettings();
+        });
     }
+
+    // Size mode changes dimension options
+    const sizeModeSelect = document.getElementById('heightmap-size-mode');
+    if (sizeModeSelect) {
+        sizeModeSelect.addEventListener('change', updateHeightmapSizeOptions);
+    }
+
+    // All heightmap controls trigger info update
+    const hmControls = [
+        'heightmap-size-mode', 'heightmap-size', 'heightmap-bitdepth',
+        'heightmap-contrast', 'heightmap-invert',
+        'gaea-terrain-scale', 'gaea-vertical-scale', 'gaea-water-level'
+    ];
+    hmControls.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', updateHeightmapInfo);
+            el.addEventListener('input', updateHeightmapInfo);
+        }
+    });
+
+    // Initialize heightmap info
+    setTimeout(() => {
+        updateHeightmapSizeOptions();
+        updateHeightmapInfo();
+    }, 100);
+}
+
+// UE5 Landscape valid sizes (must be (component * sections) + 1)
+const UE5_LANDSCAPE_SIZES = [253, 505, 1009, 2017, 4033, 8129];
+
+// Gaea 2 standard sizes (powers of 2)
+const GAEA_SIZES = [512, 1024, 2048, 4096, 8192];
+
+// Update heightmap dimension options based on size mode
+function updateHeightmapSizeOptions() {
+    const modeSelect = document.getElementById('heightmap-size-mode');
+    const sizeSelect = document.getElementById('heightmap-size');
+    if (!modeSelect || !sizeSelect) return;
+
+    const mode = modeSelect.value;
+    const currentValue = sizeSelect.value;
+    sizeSelect.innerHTML = '';
+
+    if (mode === 'ue5') {
+        UE5_LANDSCAPE_SIZES.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = `${s} x ${s}`;
+            if (s === 4033) opt.selected = true;
+            sizeSelect.appendChild(opt);
+        });
+    } else if (mode === 'gaea') {
+        GAEA_SIZES.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = `${s} x ${s}`;
+            if (s === 4096) opt.selected = true;
+            sizeSelect.appendChild(opt);
+        });
+    } else {
+        const opt = document.createElement('option');
+        opt.value = 'auto';
+        opt.textContent = 'Auto (from tile resolution)';
+        sizeSelect.appendChild(opt);
+    }
+
+    updateHeightmapInfo();
 }
 
 // Update heightmap resolution info
@@ -621,19 +693,13 @@ function updateHeightmapInfo() {
     const infoEl = document.getElementById('heightmap-info');
     if (!infoEl) return;
 
-    const resolutionSelect = document.getElementById('heightmap-resolution');
-    const resolutionSetting = resolutionSelect ? resolutionSelect.value : '15';
+    const sizeMode = document.getElementById('heightmap-size-mode')?.value || 'ue5';
+    const sizeSelect = document.getElementById('heightmap-size');
+    const targetSize = sizeSelect?.value === 'auto' ? null : parseInt(sizeSelect?.value || '4033');
+    const bitDepth = document.getElementById('heightmap-bitdepth')?.value || '16';
 
-    let zoom, upscaleFactor;
-    if (resolutionSetting === 'max') {
-        zoom = 15;
-        upscaleFactor = 2;
-    } else {
-        zoom = parseInt(resolutionSetting);
-        upscaleFactor = 1;
-    }
-
-    // Estimate output size
+    // Calculate tile coverage at zoom 15 (best quality source)
+    const zoom = 15;
     const bounds = calculateBounds(currentCenter.lat, currentCenter.lon, currentChunkSize);
     const topLeft = latLonToTile(bounds.north, bounds.west, zoom);
     const bottomRight = latLonToTile(bounds.south, bounds.east, zoom);
@@ -642,11 +708,22 @@ function updateHeightmapInfo() {
     const tilesY = bottomRight.y - topLeft.y + 1;
     const totalTiles = tilesX * tilesY;
 
-    const estWidth = tilesX * 256 * upscaleFactor;
-    const estHeight = tilesY * 256 * upscaleFactor;
-    const metersPerPixel = (currentChunkSize * 1000) / estWidth;
+    const sourceWidth = tilesX * 256;
+    const sourceHeight = tilesY * 256;
 
-    infoEl.textContent = `Est. ${estWidth}x${estHeight}px (~${metersPerPixel.toFixed(1)}m/pixel) • ${totalTiles} tiles to fetch`;
+    const outputSize = targetSize || sourceWidth;
+    const metersPerPixel = (currentChunkSize * 1000) / outputSize;
+
+    const bitLabel = bitDepth === '16' ? '16-bit' : '8-bit';
+    const fileSizeEstMB = bitDepth === '16'
+        ? ((outputSize * outputSize * 2) / (1024 * 1024)).toFixed(1)
+        : ((outputSize * outputSize) / (1024 * 1024)).toFixed(1);
+
+    const terrainScale = document.getElementById('gaea-terrain-scale')?.value;
+    const scaleLabel = terrainScale === 'auto' ? `${currentChunkSize} km` : `${terrainScale} km`;
+
+    infoEl.innerHTML = `<strong>${outputSize} x ${outputSize}px</strong> | ${bitLabel} | ~${metersPerPixel.toFixed(1)}m/pixel | ~${fileSizeEstMB} MB (uncompressed)<br>` +
+        `Source: ${totalTiles} tiles (zoom ${zoom}, ${sourceWidth}x${sourceHeight}px) | Terrain: ${scaleLabel}`;
 }
 
 // Heightmap generation using terrain tiles
@@ -703,27 +780,155 @@ function decodeTerrarium(r, g, b) {
     return (r * 256 + g + b / 256) - 32768;
 }
 
+// ============================================================
+// 16-bit PNG Encoder (for UE5/Gaea heightmap export)
+// ============================================================
+
+// CRC32 lookup table for PNG chunk checksums
+const CRC32_TABLE = (() => {
+    const table = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) {
+            c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+        }
+        table[n] = c;
+    }
+    return table;
+})();
+
+function crc32(data) {
+    let crc = 0xFFFFFFFF;
+    for (let i = 0; i < data.length; i++) {
+        crc = CRC32_TABLE[(crc ^ data[i]) & 0xFF] ^ (crc >>> 8);
+    }
+    return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+
+function makePNGChunk(type, data) {
+    const typeBytes = new Uint8Array([type.charCodeAt(0), type.charCodeAt(1), type.charCodeAt(2), type.charCodeAt(3)]);
+    const chunk = new Uint8Array(4 + 4 + data.length + 4);
+    const view = new DataView(chunk.buffer);
+
+    view.setUint32(0, data.length); // Length
+    chunk.set(typeBytes, 4);         // Type
+    chunk.set(data, 8);              // Data
+
+    // CRC over type + data
+    const crcInput = new Uint8Array(4 + data.length);
+    crcInput.set(typeBytes, 0);
+    crcInput.set(data, 4);
+    view.setUint32(8 + data.length, crc32(crcInput));
+
+    return chunk;
+}
+
+/**
+ * Encode a 16-bit grayscale PNG from a Uint16Array.
+ * Returns a Uint8Array containing the full PNG file.
+ */
+function encode16BitPNG(width, height, data16) {
+    // PNG signature
+    const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+
+    // IHDR: width(4) + height(4) + bitDepth(1) + colorType(1) + compression(1) + filter(1) + interlace(1) = 13 bytes
+    const ihdrData = new Uint8Array(13);
+    const ihdrView = new DataView(ihdrData.buffer);
+    ihdrView.setUint32(0, width);
+    ihdrView.setUint32(4, height);
+    ihdrData[8] = 16;  // bit depth
+    ihdrData[9] = 0;   // color type: grayscale
+    ihdrData[10] = 0;  // compression: deflate
+    ihdrData[11] = 0;  // filter method
+    ihdrData[12] = 0;  // interlace: none
+    const ihdrChunk = makePNGChunk('IHDR', ihdrData);
+
+    // Build raw scanlines: each row = 1 filter byte + width * 2 bytes (16-bit big-endian)
+    const rowBytes = 1 + width * 2;
+    const rawData = new Uint8Array(height * rowBytes);
+
+    for (let y = 0; y < height; y++) {
+        const offset = y * rowBytes;
+        rawData[offset] = 0; // Filter: None
+        for (let x = 0; x < width; x++) {
+            const value = data16[y * width + x];
+            const pixelOffset = offset + 1 + x * 2;
+            rawData[pixelOffset] = (value >> 8) & 0xFF;     // High byte
+            rawData[pixelOffset + 1] = value & 0xFF;         // Low byte
+        }
+    }
+
+    // Compress with pako (zlib deflate)
+    const compressed = pako.deflate(rawData);
+    const idatChunk = makePNGChunk('IDAT', compressed);
+
+    // IEND
+    const iendChunk = makePNGChunk('IEND', new Uint8Array(0));
+
+    // Combine all parts
+    const png = new Uint8Array(signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length);
+    let offset = 0;
+    png.set(signature, offset); offset += signature.length;
+    png.set(ihdrChunk, offset); offset += ihdrChunk.length;
+    png.set(idatChunk, offset); offset += idatChunk.length;
+    png.set(iendChunk, offset);
+
+    return png;
+}
+
+// ============================================================
+// Heightmap Generation (16-bit / 8-bit with UE5/Gaea sizing)
+// ============================================================
+
+// Bilinear interpolation for resampling elevation grid to target size
+function resampleElevation(srcData, srcWidth, srcHeight, dstWidth, dstHeight) {
+    const dst = new Float32Array(dstWidth * dstHeight);
+    const xRatio = (srcWidth - 1) / (dstWidth - 1);
+    const yRatio = (srcHeight - 1) / (dstHeight - 1);
+
+    for (let dy = 0; dy < dstHeight; dy++) {
+        const srcY = dy * yRatio;
+        const y0 = Math.floor(srcY);
+        const y1 = Math.min(y0 + 1, srcHeight - 1);
+        const fy = srcY - y0;
+
+        for (let dx = 0; dx < dstWidth; dx++) {
+            const srcX = dx * xRatio;
+            const x0 = Math.floor(srcX);
+            const x1 = Math.min(x0 + 1, srcWidth - 1);
+            const fx = srcX - x0;
+
+            const v00 = srcData[y0 * srcWidth + x0];
+            const v10 = srcData[y0 * srcWidth + x1];
+            const v01 = srcData[y1 * srcWidth + x0];
+            const v11 = srcData[y1 * srcWidth + x1];
+
+            dst[dy * dstWidth + dx] =
+                v00 * (1 - fx) * (1 - fy) +
+                v10 * fx * (1 - fy) +
+                v01 * (1 - fx) * fy +
+                v11 * fx * fy;
+        }
+    }
+    return dst;
+}
+
 // Generate heightmap for selected area
 async function generateHeightmap() {
     const bounds = calculateBounds(currentCenter.lat, currentCenter.lon, currentChunkSize);
 
-    // Get resolution setting
-    const resolutionSelect = document.getElementById('heightmap-resolution');
-    const resolutionSetting = resolutionSelect ? resolutionSelect.value : '15';
+    // Get settings
+    const sizeMode = document.getElementById('heightmap-size-mode')?.value || 'ue5';
+    const sizeSelect = document.getElementById('heightmap-size');
+    const targetSize = sizeSelect?.value === 'auto' ? null : parseInt(sizeSelect?.value || '4033');
+    const bitDepth = parseInt(document.getElementById('heightmap-bitdepth')?.value || '16');
+    const contrastMode = document.getElementById('heightmap-contrast')?.value || 'smart';
+    const shouldInvert = document.getElementById('heightmap-invert')?.checked || false;
+    const waterLevel = parseFloat(document.getElementById('gaea-water-level')?.value || '0');
+    const clampSea = document.getElementById('gaea-clamp-sea')?.checked || false;
 
-    // Determine zoom level and upscale factor
-    let zoom, upscaleFactor;
-    if (resolutionSetting === 'max') {
-        zoom = 15;  // Max tile zoom
-        upscaleFactor = 2;  // 2x upscale for ~2.2m/pixel
-    } else {
-        zoom = parseInt(resolutionSetting);
-        upscaleFactor = 1;
-    }
-
-    // Clamp zoom for very large areas
-    if (currentChunkSize > 20) zoom = Math.min(zoom, 13);
-    else if (currentChunkSize > 10) zoom = Math.min(zoom, 14);
+    // Always fetch at max zoom for best source quality
+    const zoom = 15;
 
     setStatus('Calculating tile coverage...', 'loading');
     showProgress(5);
@@ -736,44 +941,43 @@ async function generateHeightmap() {
     const tilesY = bottomRight.y - topLeft.y + 1;
     const totalTiles = tilesX * tilesY;
 
-    setStatus(`Fetching ${totalTiles} terrain tiles...`, 'loading');
+    setStatus(`Fetching ${totalTiles} terrain tiles (zoom ${zoom})...`, 'loading');
     showProgress(10);
 
-    // Fetch all tiles
+    // Fetch all tiles (batch parallel per row for speed)
     const tiles = [];
     let loaded = 0;
     let failedTiles = 0;
 
     for (let y = topLeft.y; y <= bottomRight.y; y++) {
-        const row = [];
+        const rowPromises = [];
         for (let x = topLeft.x; x <= bottomRight.x; x++) {
-            const result = await fetchTerrainTile(x, y, zoom);
-            row.push(result.data);
-            if (!result.success) failedTiles++;
-            loaded++;
-            showProgress(10 + (loaded / totalTiles) * 50);
+            rowPromises.push(fetchTerrainTile(x, y, zoom));
         }
+        const rowResults = await Promise.all(rowPromises);
+        const row = rowResults.map(r => {
+            if (!r.success) failedTiles++;
+            loaded++;
+            return r.data;
+        });
         tiles.push(row);
+        showProgress(10 + (loaded / totalTiles) * 40);
     }
 
     if (failedTiles > 0) {
         console.warn(`${failedTiles} of ${totalTiles} tiles failed to load`);
     }
 
-    setStatus('Processing elevation data...', 'loading');
-    showProgress(65);
+    setStatus('Decoding elevation data...', 'loading');
+    showProgress(55);
 
-    // Composite tiles into single canvas
+    // Composite tiles and decode elevation
     const compositeWidth = tilesX * 256;
     const compositeHeight = tilesY * 256;
-
-    // Collect elevation data from all tiles
-    setStatus('Decoding elevation data...', 'loading');
-    showProgress(65);
+    const fullElevation = new Float32Array(compositeWidth * compositeHeight);
 
     let minElev = Infinity;
     let maxElev = -Infinity;
-    const elevationData = new Array(compositeHeight);
 
     for (let ty = 0; ty < tilesY; ty++) {
         for (let tx = 0; tx < tilesX; tx++) {
@@ -782,23 +986,16 @@ async function generateHeightmap() {
 
             for (let py = 0; py < 256; py++) {
                 const globalY = ty * 256 + py;
-                if (!elevationData[globalY]) {
-                    elevationData[globalY] = new Array(compositeWidth);
-                }
-
                 for (let px = 0; px < 256; px++) {
                     const i = (py * 256 + px) * 4;
                     const r = data[i];
                     const g = data[i + 1];
                     const b = data[i + 2];
 
-                    // Terrarium encoding: elevation = (R * 256 + G + B / 256) - 32768
                     const elev = (r * 256 + g + b / 256) - 32768;
-
                     const globalX = tx * 256 + px;
-                    elevationData[globalY][globalX] = elev;
+                    fullElevation[globalY * compositeWidth + globalX] = elev;
 
-                    // Only count valid elevations (not from failed tiles)
                     if (r !== 0 || g !== 0 || b !== 0) {
                         if (elev < minElev) minElev = elev;
                         if (elev > maxElev) maxElev = elev;
@@ -808,188 +1005,209 @@ async function generateHeightmap() {
         }
     }
 
-    // Handle edge case where all tiles failed
-    if (minElev === Infinity) {
-        minElev = 0;
-        maxElev = 100;
+    if (minElev === Infinity) { minElev = 0; maxElev = 100; }
+
+    // Apply water level clamping
+    if (clampSea) {
+        for (let i = 0; i < fullElevation.length; i++) {
+            if (fullElevation[i] < waterLevel) fullElevation[i] = waterLevel;
+        }
+        if (minElev < waterLevel) minElev = waterLevel;
     }
 
     console.log(`Elevation range: ${minElev.toFixed(1)}m to ${maxElev.toFixed(1)}m`);
-    setStatus(`Elevation: ${minElev.toFixed(0)}m to ${maxElev.toFixed(0)}m`, 'loading');
+    setStatus(`Elevation: ${minElev.toFixed(0)}m to ${maxElev.toFixed(0)}m. Cropping...`, 'loading');
+    showProgress(65);
 
-    showProgress(80);
-    setStatus('Generating heightmap image...', 'loading');
-
-    // Calculate crop region to match exact bounds
+    // Crop to exact geographic bounds
     const topLeftCoord = tileToLatLon(topLeft.x, topLeft.y, zoom);
     const bottomRightCoord = tileToLatLon(bottomRight.x + 1, bottomRight.y + 1, zoom);
 
-    // Pixel coordinates for bounds within composite
     const pixelPerDegLon = compositeWidth / (bottomRightCoord.lon - topLeftCoord.lon);
     const pixelPerDegLat = compositeHeight / (topLeftCoord.lat - bottomRightCoord.lat);
 
-    const cropLeft = Math.floor((bounds.west - topLeftCoord.lon) * pixelPerDegLon);
-    const cropTop = Math.floor((topLeftCoord.lat - bounds.north) * pixelPerDegLat);
-    const cropRight = Math.floor((bounds.east - topLeftCoord.lon) * pixelPerDegLon);
-    const cropBottom = Math.floor((topLeftCoord.lat - bounds.south) * pixelPerDegLat);
+    const cropLeft = Math.max(0, Math.floor((bounds.west - topLeftCoord.lon) * pixelPerDegLon));
+    const cropTop = Math.max(0, Math.floor((topLeftCoord.lat - bounds.north) * pixelPerDegLat));
+    const cropRight = Math.min(compositeWidth, Math.floor((bounds.east - topLeftCoord.lon) * pixelPerDegLon));
+    const cropBottom = Math.min(compositeHeight, Math.floor((topLeftCoord.lat - bounds.south) * pixelPerDegLat));
 
     const cropWidth = cropRight - cropLeft;
     const cropHeight = cropBottom - cropTop;
 
-    // Create base heightmap canvas at tile resolution
-    const baseCanvas = document.createElement('canvas');
-    baseCanvas.width = cropWidth;
-    baseCanvas.height = cropHeight;
-    const baseCtx = baseCanvas.getContext('2d');
-    const baseImageData = baseCtx.createImageData(cropWidth, cropHeight);
+    // Extract cropped elevation into flat array
+    const croppedElev = new Float32Array(cropWidth * cropHeight);
+    for (let y = 0; y < cropHeight; y++) {
+        for (let x = 0; x < cropWidth; x++) {
+            croppedElev[y * cropWidth + x] = fullElevation[(cropTop + y) * compositeWidth + (cropLeft + x)];
+        }
+    }
 
-    // Get enhancement settings
-    const contrastSelect = document.getElementById('heightmap-contrast');
-    const contrastMode = contrastSelect ? contrastSelect.value : 'enhanced';
-    const invertCheckbox = document.getElementById('heightmap-invert');
-    const shouldInvert = invertCheckbox ? invertCheckbox.checked : false;
+    // Recalculate min/max for cropped region
+    minElev = Infinity;
+    maxElev = -Infinity;
+    for (let i = 0; i < croppedElev.length; i++) {
+        if (croppedElev[i] < minElev) minElev = croppedElev[i];
+        if (croppedElev[i] > maxElev) maxElev = croppedElev[i];
+    }
 
-    // Calculate elevation range based on contrast mode
+    const rawMinElev = minElev;
+    const rawMaxElev = maxElev;
+
+    setStatus('Resampling to target resolution...', 'loading');
+    showProgress(72);
+
+    // Resample to target size
+    const outputSize = targetSize || cropWidth;
+    const resampled = (outputSize === cropWidth && outputSize === cropHeight)
+        ? croppedElev
+        : resampleElevation(croppedElev, cropWidth, cropHeight, outputSize, outputSize);
+
+    setStatus('Applying contrast and encoding...', 'loading');
+    showProgress(80);
+
+    // Apply contrast enhancement to get final min/max
     let elevRange = maxElev - minElev;
-    let useHistogramEq = false;
 
     switch (contrastMode) {
         case 'raw':
-            // Use actual elevation values, no enhancement
             break;
+        case 'smart': {
+            // Smart normalization: 0.1% / 99.9% window (like unrealheightmap)
+            // Filters extreme outliers while preserving nearly all terrain detail
+            const sorted = Float32Array.from(resampled).sort();
+            const lo = sorted[Math.floor(sorted.length * 0.001)] ?? minElev;
+            const hi = sorted[Math.floor(sorted.length * 0.999)] ?? maxElev;
+            minElev = lo;
+            maxElev = hi;
+            elevRange = maxElev - minElev || 1;
+            break;
+        }
         case 'enhanced':
-            // Ensure minimum 10m range for visibility
             if (elevRange < 10) {
-                const midElev = (maxElev + minElev) / 2;
-                minElev = midElev - 5;
-                maxElev = midElev + 5;
+                const mid = (maxElev + minElev) / 2;
+                minElev = mid - 5;
+                maxElev = mid + 5;
                 elevRange = 10;
             }
             break;
-        case 'extreme':
-            // Use 2nd and 98th percentile for extreme contrast
-            const allElevations = [];
-            for (let y = cropTop; y < cropTop + cropHeight; y++) {
-                for (let x = cropLeft; x < cropLeft + cropWidth; x++) {
-                    if (elevationData[y] && elevationData[y][x] !== undefined) {
-                        allElevations.push(elevationData[y][x]);
-                    }
-                }
-            }
-            allElevations.sort((a, b) => a - b);
-            const p2 = allElevations[Math.floor(allElevations.length * 0.02)] || minElev;
-            const p98 = allElevations[Math.floor(allElevations.length * 0.98)] || maxElev;
-            minElev = p2;
-            maxElev = p98;
+        case 'extreme': {
+            const sorted = Float32Array.from(resampled).sort();
+            minElev = sorted[Math.floor(sorted.length * 0.02)] ?? minElev;
+            maxElev = sorted[Math.floor(sorted.length * 0.98)] ?? maxElev;
             elevRange = maxElev - minElev || 1;
             break;
+        }
         case 'histogram':
-            // Will apply histogram equalization
-            useHistogramEq = true;
+            // Handled below
             break;
+    }
+
+    // Build histogram LUT for histogram equalization
+    let histogramLUT = null;
+    if (contrastMode === 'histogram') {
+        const sorted = Float32Array.from(resampled).sort();
+        histogramLUT = new Map();
+        for (let i = 0; i < sorted.length; i++) {
+            const elev = sorted[i];
+            if (!histogramLUT.has(elev)) {
+                histogramLUT.set(elev, i / sorted.length);
+            }
+        }
     }
 
     showProgress(85);
-    setStatus('Rendering heightmap...', 'loading');
 
-    // For histogram equalization, first collect all values and build lookup table
-    let histogramLUT = null;
-    if (useHistogramEq) {
-        const allElevations = [];
-        for (let y = cropTop; y < cropTop + cropHeight; y++) {
-            for (let x = cropLeft; x < cropLeft + cropWidth; x++) {
-                if (elevationData[y] && elevationData[y][x] !== undefined) {
-                    allElevations.push(elevationData[y][x]);
-                }
-            }
-        }
-        allElevations.sort((a, b) => a - b);
+    const maxVal = bitDepth === 16 ? 65535 : 255;
+    let resultBlob;
+    let resultWidth = outputSize;
+    let resultHeight = outputSize;
 
-        // Build cumulative distribution function lookup
-        histogramLUT = new Map();
-        for (let i = 0; i < allElevations.length; i++) {
-            const elev = allElevations[i];
-            if (!histogramLUT.has(elev)) {
-                histogramLUT.set(elev, Math.round((i / allElevations.length) * 255));
-            }
-        }
-    }
+    if (bitDepth === 16) {
+        // 16-bit grayscale PNG
+        setStatus(`Encoding 16-bit PNG (${outputSize}x${outputSize})...`, 'loading');
+        const data16 = new Uint16Array(outputSize * outputSize);
 
-    for (let y = 0; y < cropHeight; y++) {
-        for (let x = 0; x < cropWidth; x++) {
-            const srcY = cropTop + y;
-            const srcX = cropLeft + x;
+        for (let i = 0; i < resampled.length; i++) {
+            let elev = resampled[i];
+            let normalized;
 
-            let elev = minElev;
-            if (elevationData[srcY] && elevationData[srcY][srcX] !== undefined) {
-                elev = elevationData[srcY][srcX];
-            }
-
-            let gray;
-            if (useHistogramEq && histogramLUT) {
-                // Find closest elevation in LUT
-                gray = histogramLUT.get(elev);
-                if (gray === undefined) {
-                    // Linear interpolation fallback
-                    gray = Math.round(((elev - minElev) / (elevRange || 1)) * 255);
+            if (contrastMode === 'histogram' && histogramLUT) {
+                normalized = histogramLUT.get(elev);
+                if (normalized === undefined) {
+                    normalized = Math.max(0, Math.min(1, (elev - minElev) / (elevRange || 1)));
                 }
             } else {
-                // Standard linear normalization
-                const normalized = ((elev - minElev) / (elevRange || 1)) * 255;
-                gray = Math.max(0, Math.min(255, Math.round(normalized)));
+                normalized = Math.max(0, Math.min(1, (elev - minElev) / (elevRange || 1)));
             }
 
-            // Apply inversion if requested
-            if (shouldInvert) {
-                gray = 255 - gray;
-            }
-
-            const i = (y * cropWidth + x) * 4;
-            baseImageData.data[i] = gray;     // R
-            baseImageData.data[i + 1] = gray; // G
-            baseImageData.data[i + 2] = gray; // B
-            baseImageData.data[i + 3] = 255;  // A
+            if (shouldInvert) normalized = 1 - normalized;
+            data16[i] = Math.round(normalized * 65535);
         }
+
+        showProgress(90);
+        const pngBytes = encode16BitPNG(outputSize, outputSize, data16);
+        resultBlob = new Blob([pngBytes], { type: 'image/png' });
+
+    } else {
+        // 8-bit grayscale via canvas
+        setStatus(`Encoding 8-bit PNG (${outputSize}x${outputSize})...`, 'loading');
+        const canvas = document.createElement('canvas');
+        canvas.width = outputSize;
+        canvas.height = outputSize;
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.createImageData(outputSize, outputSize);
+
+        for (let i = 0; i < resampled.length; i++) {
+            let elev = resampled[i];
+            let normalized;
+
+            if (contrastMode === 'histogram' && histogramLUT) {
+                normalized = histogramLUT.get(elev);
+                if (normalized === undefined) {
+                    normalized = Math.max(0, Math.min(1, (elev - minElev) / (elevRange || 1)));
+                }
+            } else {
+                normalized = Math.max(0, Math.min(1, (elev - minElev) / (elevRange || 1)));
+            }
+
+            if (shouldInvert) normalized = 1 - normalized;
+            const gray = Math.round(normalized * 255);
+
+            const idx = i * 4;
+            imageData.data[idx] = gray;
+            imageData.data[idx + 1] = gray;
+            imageData.data[idx + 2] = gray;
+            imageData.data[idx + 3] = 255;
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        resultBlob = await new Promise(resolve => {
+            canvas.toBlob(resolve, 'image/png');
+        });
     }
-
-    baseCtx.putImageData(baseImageData, 0, 0);
-
-    // Apply upscaling if requested
-    const finalWidth = cropWidth * upscaleFactor;
-    const finalHeight = cropHeight * upscaleFactor;
-
-    const heightmapCanvas = document.createElement('canvas');
-    heightmapCanvas.width = finalWidth;
-    heightmapCanvas.height = finalHeight;
-    const heightmapCtx = heightmapCanvas.getContext('2d');
-
-    // Use high-quality image scaling
-    heightmapCtx.imageSmoothingEnabled = true;
-    heightmapCtx.imageSmoothingQuality = 'high';
-    heightmapCtx.drawImage(baseCanvas, 0, 0, finalWidth, finalHeight);
 
     showProgress(95);
 
     // Update info display
     const infoEl = document.getElementById('heightmap-info');
     if (infoEl) {
-        const metersPerPixel = (currentChunkSize * 1000) / finalWidth;
-        const actualRange = maxElev - minElev;
-        infoEl.textContent = `Output: ${finalWidth}x${finalHeight}px | Elevation: ${minElev.toFixed(0)}m - ${maxElev.toFixed(0)}m (${actualRange.toFixed(0)}m range)`;
+        const metersPerPixel = (currentChunkSize * 1000) / outputSize;
+        const range = rawMaxElev - rawMinElev;
+        infoEl.innerHTML = `<strong>Output: ${outputSize}x${outputSize}px</strong> | ${bitDepth}-bit | ~${metersPerPixel.toFixed(1)}m/pixel<br>` +
+            `Elevation: ${rawMinElev.toFixed(1)}m to ${rawMaxElev.toFixed(1)}m (${range.toFixed(1)}m range)`;
     }
 
-    // Return as blob
-    return new Promise((resolve) => {
-        heightmapCanvas.toBlob((blob) => {
-            resolve({
-                blob,
-                width: finalWidth,
-                height: finalHeight,
-                minElevation: minElev,
-                maxElevation: maxElev
-            });
-        }, 'image/png');
-    });
+    return {
+        blob: resultBlob,
+        width: resultWidth,
+        height: resultHeight,
+        minElevation: rawMinElev,
+        maxElevation: rawMaxElev,
+        outputSize,
+        bitDepth,
+        bounds
+    };
 }
 
 // Download heightmap with save dialog
@@ -999,9 +1217,13 @@ async function downloadHeightmap() {
 
         showProgress(100);
         const range = result.maxElevation - result.minElevation;
-        setStatus(`Heightmap ready: ${result.width}x${result.height}px | ${result.minElevation.toFixed(0)}m to ${result.maxElevation.toFixed(0)}m (${range.toFixed(0)}m range)`, 'success');
+        setStatus(`Heightmap ready: ${result.outputSize}x${result.outputSize}px ${result.bitDepth}-bit | ${result.minElevation.toFixed(0)}m to ${result.maxElevation.toFixed(0)}m (${range.toFixed(0)}m range)`, 'success');
 
-        const filename = `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}.png`;
+        // Store last result for Gaea settings export
+        lastHeightmapResult = result;
+
+        const bitLabel = result.bitDepth === 16 ? '16bit' : '8bit';
+        const filename = `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${result.outputSize}px_${bitLabel}.png`;
 
         // Try File System Access API
         if ('showSaveFilePicker' in window) {
@@ -1015,7 +1237,7 @@ async function downloadHeightmap() {
                 await writable.write(result.blob);
                 await writable.close();
 
-                setStatus(`Saved: ${handle.name} (${result.width}x${result.height}px)`, 'success');
+                setStatus(`Saved: ${handle.name} (${result.outputSize}x${result.outputSize}px, ${result.bitDepth}-bit)`, 'success');
                 setTimeout(() => showProgress(null), 500);
                 return;
             } catch (err) {
@@ -1043,6 +1265,166 @@ async function downloadHeightmap() {
         setStatus(`Error generating heightmap: ${error.message}`, 'error');
         showProgress(null);
     }
+}
+
+// Last heightmap result for Gaea export
+let lastHeightmapResult = null;
+
+// Generate and download Gaea 2 settings file
+async function downloadGaeaSettings() {
+    const bounds = calculateBounds(currentCenter.lat, currentCenter.lon, currentChunkSize);
+    const sizeMode = document.getElementById('heightmap-size-mode')?.value || 'ue5';
+    const sizeSelect = document.getElementById('heightmap-size');
+    const targetSize = sizeSelect?.value === 'auto' ? 4033 : parseInt(sizeSelect?.value || '4033');
+    const bitDepth = parseInt(document.getElementById('heightmap-bitdepth')?.value || '16');
+    const terrainScaleSetting = document.getElementById('gaea-terrain-scale')?.value || 'auto';
+    const verticalScaleSetting = document.getElementById('gaea-vertical-scale')?.value || 'auto';
+    const waterLevel = parseFloat(document.getElementById('gaea-water-level')?.value || '0');
+
+    const terrainScaleKm = terrainScaleSetting === 'auto' ? currentChunkSize : parseFloat(terrainScaleSetting);
+    const terrainScaleM = terrainScaleKm * 1000;
+
+    // Use last heightmap result elevation data if available
+    const minElev = lastHeightmapResult?.minElevation ?? 0;
+    const maxElev = lastHeightmapResult?.maxElevation ?? 500;
+    const elevRange = maxElev - minElev;
+
+    const verticalScaleM = verticalScaleSetting === 'auto'
+        ? Math.max(100, Math.ceil(elevRange / 100) * 100 * 1.2) // 20% headroom, rounded to 100m
+        : parseFloat(verticalScaleSetting);
+
+    // UE5 scale calculations
+    const UE5_SCALE = 100; // 1m = 100 UU
+    const landscapeSizeUU = terrainScaleM * UE5_SCALE;
+    const zScaleUE5 = (elevRange * UE5_SCALE) / 512; // UE5 Z scale relative to 512 height range
+
+    const settings = {
+        _description: 'Gaea 2 terrain settings - generated by GIS Road Data Extractor',
+        _version: '1.0',
+        _generated: new Date().toISOString(),
+
+        // Geographic reference
+        geographic: {
+            center_lat: currentCenter.lat,
+            center_lon: currentCenter.lon,
+            bounds: {
+                north: bounds.north,
+                south: bounds.south,
+                east: bounds.east,
+                west: bounds.west
+            },
+            chunk_size_km: currentChunkSize
+        },
+
+        // Heightmap file info
+        heightmap: {
+            filename: `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${targetSize}px_${bitDepth === 16 ? '16bit' : '8bit'}.png`,
+            resolution: targetSize,
+            bit_depth: bitDepth,
+            format: 'PNG grayscale'
+        },
+
+        // Elevation data
+        elevation: {
+            min_meters: Math.round(minElev * 10) / 10,
+            max_meters: Math.round(maxElev * 10) / 10,
+            range_meters: Math.round(elevRange * 10) / 10,
+            water_level_meters: waterLevel
+        },
+
+        // Gaea 2 terrain definition settings
+        gaea2: {
+            terrain_definition: {
+                resolution: targetSize,
+                terrain_scale_meters: terrainScaleM,
+                vertical_scale_meters: verticalScaleM,
+                _note: 'Set these in Gaea 2: Terrain Definition panel'
+            },
+            recommended_nodes: {
+                file_input: {
+                    node: 'File',
+                    filename: `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${targetSize}px_${bitDepth === 16 ? '16bit' : '8bit'}.png`,
+                    _note: 'Import heightmap as File node, set to 16-bit grayscale'
+                },
+                erosion: {
+                    node: 'Erosion',
+                    duration: elevRange > 200 ? 0.5 : 0.3,
+                    rock_softness: elevRange > 500 ? 0.3 : 0.5,
+                    _note: 'Adjusted for terrain relief. Higher relief = longer erosion, harder rock'
+                },
+                thermal: {
+                    node: 'Thermal',
+                    iterations: elevRange > 200 ? 15 : 10,
+                    _note: 'Thermal weathering. More iterations for mountainous terrain'
+                },
+                output: {
+                    node: 'Output',
+                    format: 'PNG 16-bit',
+                    resolution: targetSize,
+                    _note: 'Match input resolution for UE5 Landscape import'
+                }
+            },
+            build_settings: {
+                resolution: targetSize >= 4033 ? 'Ultra' : targetSize >= 2017 ? 'High' : 'Normal',
+                force_high_quality: targetSize >= 4033
+            }
+        },
+
+        // UE5 Landscape import settings
+        ue5: {
+            landscape_size: targetSize,
+            scale: {
+                x: landscapeSizeUU / targetSize,
+                y: landscapeSizeUU / targetSize,
+                z: zScaleUE5
+            },
+            location_offset: {
+                x: 0,
+                y: 0,
+                z: Math.round(minElev * UE5_SCALE)
+            },
+            _note: `Set Landscape scale to (${(landscapeSizeUU / targetSize).toFixed(2)}, ${(landscapeSizeUU / targetSize).toFixed(2)}, ${zScaleUE5.toFixed(2)}) in UE5`
+        },
+
+        // Paired road data reference
+        road_data: {
+            _note: 'Extract roads for this same area using the Road Extractor on the same page',
+            expected_filename: `roads_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_ue5.json`,
+            coordinate_system: 'UE5 Unreal Units (1m = 100 UU), center-origin'
+        }
+    };
+
+    const jsonString = JSON.stringify(settings, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const filename = `gaea_settings_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}.json`;
+
+    if ('showSaveFilePicker' in window) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{ description: 'JSON File', accept: { 'application/json': ['.json'] } }]
+            });
+            const writable = await handle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+            setStatus(`Saved Gaea settings: ${handle.name}`, 'success');
+            return;
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+        }
+    }
+
+    // Fallback
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setStatus(`Downloaded: ${filename}`, 'success');
 }
 
 // Initialize on load

@@ -137,55 +137,143 @@
                     </span>
                 </button>
             </div>
-            <!-- Heightmap button (disabled for now)
-            <div class="result-actions" style="margin-top: 10px;">
-                <button id="download-heightmap" class="download-btn heightmap-btn">
-                    Download Heightmap
-                    <span class="tooltip">
-                        <strong>Terrain Heightmap (PNG)</strong><br>
-                        Grayscale elevation data for the selected area. No roads included.<br><br>
-                        <em>Use for:</em> UE5 Landscape import, terrain generation, 3D modeling.<br><br>
-                        <code>UE5: Landscape Mode → Import → Select PNG heightmap</code>
-                    </span>
-                </button>
-            </div>
-            -->
         </div>
 
-        <!-- Heightmap Panel (disabled for now) -->
-        <div id="heightmap-panel" class="hidden">
-            <div class="heightmap-controls">
-                <label for="heightmap-resolution">Resolution:</label>
-                <select id="heightmap-resolution">
-                    <option value="14">Standard (~9m/pixel)</option>
-                    <option value="15" selected>High (~4.5m/pixel)</option>
-                    <option value="max">Maximum (~2.2m/pixel)</option>
-                </select>
-
-                <label for="heightmap-contrast">Detail:</label>
-                <select id="heightmap-contrast">
-                    <option value="raw">Raw (actual elevation)</option>
-                    <option value="enhanced" selected>Enhanced (auto-contrast)</option>
-                    <option value="extreme">Extreme (max detail)</option>
-                    <option value="histogram">Histogram EQ (all detail)</option>
-                </select>
-
-                <label class="toggle-label">
-                    <input type="checkbox" id="heightmap-invert">
-                    Invert
-                </label>
-
-                <button id="download-heightmap-standalone" class="download-btn heightmap-btn">
-                    Download Heightmap
-                    <span class="tooltip tooltip-up">
-                        <strong>Terrain Heightmap (PNG)</strong><br>
-                        Grayscale elevation data for the selected area. No roads needed.<br><br>
-                        <em>Use for:</em> UE5 Landscape import, terrain generation, 3D modeling.<br><br>
-                        <code>UE5: Landscape Mode → Import → Select PNG heightmap</code>
-                    </span>
-                </button>
+        <!-- Heightmap & Terrain Panel -->
+        <div id="heightmap-panel">
+            <div class="heightmap-header">
+                <h3>Heightmap & Terrain</h3>
+                <span class="heightmap-toggle" id="heightmap-toggle">&#9660;</span>
             </div>
-            <div id="heightmap-info" class="heightmap-info"></div>
+            <div id="heightmap-body">
+                <div class="heightmap-controls-grid">
+                    <!-- Row 1: Output settings -->
+                    <div class="hm-control-row">
+                        <div class="hm-control">
+                            <label for="heightmap-size-mode">Output Size:</label>
+                            <select id="heightmap-size-mode">
+                                <option value="ue5">UE5 Landscape</option>
+                                <option value="gaea">Gaea 2 (Power of 2)</option>
+                                <option value="auto">Auto (from tiles)</option>
+                            </select>
+                        </div>
+                        <div class="hm-control">
+                            <label for="heightmap-size">Dimensions:</label>
+                            <select id="heightmap-size">
+                                <option value="253">253 x 253</option>
+                                <option value="505">505 x 505</option>
+                                <option value="1009">1009 x 1009</option>
+                                <option value="2017">2017 x 2017</option>
+                                <option value="4033" selected>4033 x 4033</option>
+                                <option value="8129">8129 x 8129</option>
+                            </select>
+                        </div>
+                        <div class="hm-control">
+                            <label for="heightmap-bitdepth">Bit Depth:</label>
+                            <select id="heightmap-bitdepth">
+                                <option value="16" selected>16-bit (UE5/Gaea)</option>
+                                <option value="8">8-bit (Preview)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Enhancement settings -->
+                    <div class="hm-control-row">
+                        <div class="hm-control">
+                            <label for="heightmap-contrast">Detail:</label>
+                            <select id="heightmap-contrast">
+                                <option value="raw">Raw (direct elevation)</option>
+                                <option value="smart" selected>Smart (99.9% range)</option>
+                                <option value="enhanced">Enhanced (auto-contrast)</option>
+                                <option value="extreme">Extreme (2-98% range)</option>
+                                <option value="histogram">Histogram EQ (all detail)</option>
+                            </select>
+                        </div>
+                        <div class="hm-control">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="heightmap-invert">
+                                Invert
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Gaea 2 Settings Section -->
+                    <div class="hm-section-divider">
+                        <span>Gaea 2 Integration</span>
+                    </div>
+
+                    <div class="hm-control-row">
+                        <div class="hm-control">
+                            <label for="gaea-terrain-scale">Terrain Scale:</label>
+                            <select id="gaea-terrain-scale">
+                                <option value="auto" selected>Auto (from chunk size)</option>
+                                <option value="2">2 km</option>
+                                <option value="4">4 km</option>
+                                <option value="8">8 km</option>
+                                <option value="10">10 km</option>
+                                <option value="16">16 km</option>
+                                <option value="32">32 km</option>
+                            </select>
+                        </div>
+                        <div class="hm-control">
+                            <label for="gaea-vertical-scale">Vertical Scale:</label>
+                            <select id="gaea-vertical-scale">
+                                <option value="auto" selected>Auto (from elevation)</option>
+                                <option value="100">100 m</option>
+                                <option value="500">500 m</option>
+                                <option value="1000">1000 m</option>
+                                <option value="2000">2000 m</option>
+                                <option value="4000">4000 m</option>
+                            </select>
+                        </div>
+                        <div class="hm-control">
+                            <label for="gaea-water-level">Water Level (m):</label>
+                            <input type="number" id="gaea-water-level" value="0" step="1" style="width:70px">
+                        </div>
+                    </div>
+
+                    <div class="hm-control-row">
+                        <div class="hm-control">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="gaea-export-settings" checked>
+                                Export Gaea settings file (.json)
+                            </label>
+                        </div>
+                        <div class="hm-control">
+                            <label class="toggle-label">
+                                <input type="checkbox" id="gaea-clamp-sea">
+                                Clamp below water level
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info display -->
+                <div id="heightmap-info" class="heightmap-info"></div>
+
+                <!-- Action buttons -->
+                <div class="heightmap-actions">
+                    <button id="download-heightmap-standalone" class="download-btn heightmap-btn">
+                        Download Heightmap
+                        <span class="tooltip tooltip-up">
+                            <strong>16-bit Grayscale PNG Heightmap</strong><br>
+                            Terrain elevation data sized for direct UE5 Landscape or Gaea 2 import.<br><br>
+                            <em>UE5:</em> Landscape Mode &rarr; Import &rarr; Select PNG<br>
+                            <em>Gaea 2:</em> File node &rarr; Load PNG &rarr; Set terrain definition<br><br>
+                            <code>Dimensions match UE5 Landscape requirements exactly</code>
+                        </span>
+                    </button>
+                    <button id="download-gaea-settings" class="download-btn gaea-btn">
+                        Download Gaea Settings
+                        <span class="tooltip tooltip-up">
+                            <strong>Gaea 2 Settings File</strong><br>
+                            JSON file with terrain definition, elevation range, coordinates, and recommended Gaea 2 node settings.<br><br>
+                            <em>Contains:</em> Scale, bounds, elevation min/max, UE5 mapping values<br><br>
+                            <code>Reference this when configuring your Gaea 2 terrain graph</code>
+                        </span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -193,6 +281,11 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+
+    <!-- Pako for 16-bit PNG zlib compression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"
+            integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d6A8PE7aELKc0gsSBcLIIKF5eAKoHMlMSMFMGeNbNMiOA3fMaozA=="
+            crossorigin="anonymous"></script>
 
     <script src="app.js"></script>
 </body>

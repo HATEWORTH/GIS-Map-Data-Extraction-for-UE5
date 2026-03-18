@@ -371,41 +371,73 @@ button:disabled {
     background: #10b981;
 }
 
-/* Heightmap standalone panel */
+/* Heightmap & Terrain Panel */
 #heightmap-panel {
     background: #0f172a;
-    padding: 10px 20px;
     border-top: 1px solid #374151;
     flex-shrink: 0;
 }
 
-.heightmap-controls {
+.heightmap-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.heightmap-controls label {
-    font-size: 0.8rem;
-    color: #9ca3af;
-}
-
-.heightmap-controls .toggle-label {
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    justify-content: space-between;
+    padding: 10px 20px;
     cursor: pointer;
     user-select: none;
 }
 
-.heightmap-controls .toggle-label input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
-    cursor: pointer;
+.heightmap-header h3 {
+    font-size: 0.95rem;
+    color: #10b981;
+    font-weight: 600;
 }
 
-.heightmap-controls select {
+.heightmap-toggle {
+    color: #6b7280;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.heightmap-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+#heightmap-body {
+    padding: 0 20px 14px 20px;
+}
+
+#heightmap-body.collapsed {
+    display: none;
+}
+
+.heightmap-controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.hm-control-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.hm-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.hm-control label {
+    font-size: 0.8rem;
+    color: #9ca3af;
+    white-space: nowrap;
+}
+
+.hm-control select,
+.hm-control input[type="number"] {
     background: #16213e;
     border: 1px solid #374151;
     color: #e8e8e8;
@@ -414,17 +446,78 @@ button:disabled {
     font-size: 0.8rem;
 }
 
-#heightmap-panel .download-btn {
+.hm-control input[type="number"] {
+    width: 70px;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #10b981;
+}
+
+.hm-section-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 6px 0 2px 0;
+}
+
+.hm-section-divider::before,
+.hm-section-divider::after {
+    content: '';
     flex: 1;
-    max-width: 240px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
+    height: 1px;
+    background: #374151;
+}
+
+.hm-section-divider span {
+    font-size: 0.75rem;
+    color: #10b981;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
 }
 
 .heightmap-info {
-    margin-top: 6px;
+    margin-top: 10px;
     font-size: 0.75rem;
     color: #6b7280;
+    padding: 8px 10px;
+    background: #16213e;
+    border-radius: 4px;
+    border-left: 3px solid #10b981;
+}
+
+.heightmap-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.heightmap-actions .download-btn {
+    flex: 1;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.gaea-btn {
+    background: #7c3aed;
+}
+
+.gaea-btn:hover {
+    background: #8b5cf6;
 }
 
 /* Tooltip that opens upward */
