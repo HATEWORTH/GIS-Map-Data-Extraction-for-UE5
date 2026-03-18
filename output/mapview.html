@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Data Map Viewer - Geographic Bounds</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0f;
+            color: #e8e8e8;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            background: #16213e;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+            flex-shrink: 0;
+        }
+        h1 { font-size: 1.3rem; color: #60a5fa; }
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        input[type="file"] {
+            background: #0f172a;
+            border: 1px solid #374151;
+            color: #e8e8e8;
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+        button {
+            background: #2563eb;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        button:hover { background: #3b82f6; }
+        .main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        #map {
+            flex: 1;
+        }
+        .sidebar {
+            width: 340px;
+            background: #16213e;
+            padding: 16px;
+            border-left: 1px solid #374151;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        .sidebar h3 {
+            font-size: 0.9rem;
+            color: #60a5fa;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 8px;
+        }
+        .coord-box {
+            background: #0f172a;
+            border: 1px solid #374151;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .coord-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1f2937;
+        }
+        .coord-row:last-child { border-bottom: none; }
+        .coord-label { color: #9ca3af; min-width: 100px; }
+        .coord-value {
+            color: #34d399;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: background 0.2s;
+        }
+        .coord-value:hover { background: #1f2937; }
+        .coord-value.copied {
+            background: #065f46;
+            color: #6ee7b7;
+        }
+        .copy-hint {
+            font-size: 0.7rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 4px;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #1f2937;
+        }
+        .stat-label { color: #9ca3af; }
+        .stat-value { color: #e8e8e8; font-weight: 500; }
+        .copy-all-btn {
+            width: 100%;
+            margin-top: 8px;
+            background: #065f46;
+            padding: 10px;
+            font-size: 0.85rem;
+        }
+        .copy-all-btn:hover { background: #047857; }
+        #drop-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(37, 99, 235, 0.15);
+            border: 3px dashed #2563eb;
+            display: none;
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+        #drop-overlay.active { display: flex; }
+        #welcome {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 500;
+            background: rgba(22, 33, 62, 0.95);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+        }
+        #welcome h2 { color: #60a5fa; margin-bottom: 12px; }
+        #welcome p { color: #9ca3af; font-size: 0.95rem; line-height: 1.6; }
+        .toggle-roads {
+            background: #374151;
+            margin-top: 12px;
+        }
+        .toggle-roads:hover { background: #4b5563; }
+        .toggle-roads.active { background: #2563eb; }
+        .category-badge {
+            display: inline-block;
+            background: #2563eb;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .nav-links a:hover { text-decoration: underline; }
+        .gm-link {
+            text-decoration: none;
+            font-size: 1rem;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            flex-shrink: 0;
+        }
+        .gm-link:hover { opacity: 1; }
+    </style>
+</head>
+<body>
+    <header>
+        <div>
+            <h1>Map Viewer - Geographic Bounds</h1>
+            <div class="nav-links">
+                <a href="../docs/index.html">Extractor</a>
+                <a href="visualize.html">Road Visualizer</a>
+                <a href="gallery.html">Gallery</a>
+            </div>
+        </div>
+        <div class="controls">
+            <input type="file" id="file-input" accept=".json">
+        </div>
+    </header>
+
+    <div class="main">
+        <div id="map">
+            <div id="welcome">
+                <h2>Upload Road Data</h2>
+                <p>Upload a UE5 JSON file to see the extraction area<br>on an interactive map with exact geographic bounds.<br><br>
+                Use the file picker above or drag & drop a file.</p>
+            </div>
+        </div>
+
+        <div class="sidebar" id="sidebar" style="display:none">
+            <h3>Google Maps Coordinates</h3>
+            <p style="font-size:0.75rem;color:#6b7280;margin-bottom:8px">Paste these directly into Google Maps search</p>
+
+            <div class="coord-box">
+                <div class="coord-row">
+                    <span class="coord-label">Center</span>
+                    <span class="coord-value" id="gm-center" onclick="copyCoord(this)">-</span>
+                    <a class="gm-link" id="gm-link-center" href="#" target="_blank" title="Open in Google Maps">&#x1F5FA;</a>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">NW Corner</span>
+                    <span class="coord-value" id="gm-nw" onclick="copyCoord(this)">-</span>
+                    <a class="gm-link" id="gm-link-nw" href="#" target="_blank" title="Open in Google Maps">&#x1F5FA;</a>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">NE Corner</span>
+                    <span class="coord-value" id="gm-ne" onclick="copyCoord(this)">-</span>
+                    <a class="gm-link" id="gm-link-ne" href="#" target="_blank" title="Open in Google Maps">&#x1F5FA;</a>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">SE Corner</span>
+                    <span class="coord-value" id="gm-se" onclick="copyCoord(this)">-</span>
+                    <a class="gm-link" id="gm-link-se" href="#" target="_blank" title="Open in Google Maps">&#x1F5FA;</a>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">SW Corner</span>
+                    <span class="coord-value" id="gm-sw" onclick="copyCoord(this)">-</span>
+                    <a class="gm-link" id="gm-link-sw" href="#" target="_blank" title="Open in Google Maps">&#x1F5FA;</a>
+                </div>
+                <div class="copy-hint">Click coordinates to copy &bull; Click map icon to open in Google Maps</div>
+            </div>
+
+            <button class="copy-all-btn" onclick="copyAllBounds()">Copy All Bounds to Clipboard</button>
+
+            <h3 style="margin-top:16px">Individual Bounds</h3>
+            <div class="coord-box">
+                <div class="coord-row">
+                    <span class="coord-label">North (Top)</span>
+                    <span class="coord-value" id="bound-n" onclick="copyCoord(this)">-</span>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">South (Bottom)</span>
+                    <span class="coord-value" id="bound-s" onclick="copyCoord(this)">-</span>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">East (Right)</span>
+                    <span class="coord-value" id="bound-e" onclick="copyCoord(this)">-</span>
+                </div>
+                <div class="coord-row">
+                    <span class="coord-label">West (Left)</span>
+                    <span class="coord-value" id="bound-w" onclick="copyCoord(this)">-</span>
+                </div>
+            </div>
+
+            <h3 style="margin-top:20px">Dataset Info</h3>
+            <div id="dataset-info"></div>
+
+            <button class="toggle-roads active" id="toggle-roads" onclick="toggleRoads()">Toggle Road Overlay</button>
+
+            <h3 style="margin-top:20px">Road Statistics</h3>
+            <div id="road-stats"></div>
+        </div>
+    </div>
+
+    <div id="drop-overlay">Drop JSON file here</div>
+
+    <script>
+        // Initialize Leaflet map
+        const map = L.map('map', { zoomControl: true }).setView([39.8283, -98.5795], 5);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+            maxZoom: 19
+        }).addTo(map);
+
+        let boundsRect = null;
+        let roadLayers = null;
+        let roadsVisible = true;
+        let currentData = null;
+        let currentBounds = null;
+
+        const roadColors = {
+            interstate: '#E31C1C', highway: '#F48C06', arterial: '#FFC300',
+            minor_arterial: '#FFE066', collector: '#74C0FC', residential: '#51CF66',
+            service: '#868E96', unclassified: '#FFFFFF'
+        };
+
+        const roadWeights = {
+            interstate: 5, highway: 4, arterial: 3.5, minor_arterial: 3,
+            collector: 2.5, residential: 2, service: 1.5, unclassified: 2
+        };
+
+        function loadData(jsonData) {
+            currentData = jsonData;
+            const meta = jsonData.metadata;
+
+            document.getElementById('welcome').style.display = 'none';
+            document.getElementById('sidebar').style.display = 'block';
+
+            const centerLat = meta.center_lat;
+            const centerLon = meta.center_lon;
+            const halfSize = meta.size_km / 2;
+
+            // Calculate bounds using the same equirectangular projection as the pipeline
+            const latPerKm = 1 / 111.32;
+            const lonPerKm = 1 / (111.32 * Math.cos(centerLat * Math.PI / 180));
+
+            const north = centerLat + halfSize * latPerKm;
+            const south = centerLat - halfSize * latPerKm;
+            const east = centerLon + halfSize * lonPerKm;
+            const west = centerLon - halfSize * lonPerKm;
+
+            currentBounds = { north, south, east, west, centerLat, centerLon };
+
+            // Helper: Google Maps URL for a lat,lon
+            const gmUrl = (lat, lon) => `https://www.google.com/maps?q=${lat.toFixed(6)},${lon.toFixed(6)}`;
+            // Helper: Google Maps format "lat, lon" (what you paste into the search bar)
+            const gmFmt = (lat, lon) => `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+            // Google Maps-ready coordinates (lat, lon format — paste directly into search)
+            document.getElementById('gm-center').textContent = gmFmt(centerLat, centerLon);
+            document.getElementById('gm-nw').textContent = gmFmt(north, west);
+            document.getElementById('gm-ne').textContent = gmFmt(north, east);
+            document.getElementById('gm-se').textContent = gmFmt(south, east);
+            document.getElementById('gm-sw').textContent = gmFmt(south, west);
+
+            // Google Maps links
+            document.getElementById('gm-link-center').href = gmUrl(centerLat, centerLon);
+            document.getElementById('gm-link-nw').href = gmUrl(north, west);
+            document.getElementById('gm-link-ne').href = gmUrl(north, east);
+            document.getElementById('gm-link-se').href = gmUrl(south, east);
+            document.getElementById('gm-link-sw').href = gmUrl(south, west);
+
+            // Individual bound values
+            document.getElementById('bound-n').textContent = north.toFixed(6);
+            document.getElementById('bound-s').textContent = south.toFixed(6);
+            document.getElementById('bound-e').textContent = east.toFixed(6);
+            document.getElementById('bound-w').textContent = west.toFixed(6);
+
+            // Clear previous layers
+            if (boundsRect) map.removeLayer(boundsRect);
+            if (roadLayers) map.removeLayer(roadLayers);
+
+            // Draw bounds rectangle
+            const bounds = [[south, west], [north, east]];
+            boundsRect = L.rectangle(bounds, {
+                color: '#60a5fa',
+                weight: 2,
+                fillColor: '#60a5fa',
+                fillOpacity: 0.08,
+                dashArray: '8, 4'
+            }).addTo(map);
+
+            // Add corner markers
+            const cornerIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:8px;height:8px;background:#60a5fa;border:2px solid #fff;border-radius:50%"></div>',
+                iconSize: [8, 8],
+                iconAnchor: [4, 4]
+            });
+
+            L.marker([north, west], { icon: cornerIcon }).addTo(map).bindTooltip('NW');
+            L.marker([north, east], { icon: cornerIcon }).addTo(map).bindTooltip('NE');
+            L.marker([south, east], { icon: cornerIcon }).addTo(map).bindTooltip('SE');
+            L.marker([south, west], { icon: cornerIcon }).addTo(map).bindTooltip('SW');
+
+            // Center marker
+            const centerIcon = L.divIcon({
+                className: '',
+                html: '<div style="width:10px;height:10px;background:#f59e0b;border:2px solid #fff;border-radius:50%"></div>',
+                iconSize: [10, 10],
+                iconAnchor: [5, 5]
+            });
+            L.marker([centerLat, centerLon], { icon: centerIcon }).addTo(map)
+                .bindTooltip(`Center: ${centerLat.toFixed(4)}, ${centerLon.toFixed(4)}`);
+
+            // Draw roads on map
+            drawRoads(jsonData, centerLat, centerLon);
+
+            // Fit map to bounds with padding
+            map.fitBounds(bounds, { padding: [50, 50] });
+
+            // Update dataset info
+            document.getElementById('dataset-info').innerHTML = `
+                <div class="stat-row">
+                    <span class="stat-label">City</span>
+                    <span class="stat-value">${meta.city}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Size</span>
+                    <span class="stat-value">${meta.size_km} km x ${meta.size_km} km</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Roads</span>
+                    <span class="stat-value">${meta.total_roads.toLocaleString()}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Nodes</span>
+                    <span class="stat-value">${meta.total_nodes.toLocaleString()}</span>
+                </div>
+                <div class="category-badge">${meta.category}</div>
+            `;
+
+            // Update road stats
+            const stats = meta.road_stats;
+            let statsHtml = '';
+            for (const [type, count] of Object.entries(stats)) {
+                if (count > 0) {
+                    statsHtml += `
+                        <div class="stat-row">
+                            <span class="stat-label" style="display:flex;align-items:center;gap:6px">
+                                <span style="display:inline-block;width:12px;height:6px;background:${roadColors[type]};border-radius:2px"></span>
+                                ${type}
+                            </span>
+                            <span class="stat-value">${count}</span>
+                        </div>
+                    `;
+                }
+            }
+            document.getElementById('road-stats').innerHTML = statsHtml;
+        }
+
+        function drawRoads(jsonData, centerLat, centerLon) {
+            const cosLat = Math.cos(centerLat * Math.PI / 180);
+            roadLayers = L.layerGroup();
+
+            // Draw order: minor roads first
+            const drawOrder = ['service', 'unclassified', 'residential', 'collector', 'minor_arterial', 'arterial', 'highway', 'interstate'];
+
+            const edgesByType = {};
+            for (const edge of jsonData.edges) {
+                if (!edgesByType[edge.road_type]) edgesByType[edge.road_type] = [];
+                edgesByType[edge.road_type].push(edge);
+            }
+
+            for (const type of drawOrder) {
+                const edges = edgesByType[type] || [];
+                for (const edge of edges) {
+                    if (!edge.points || edge.points.length < 2) continue;
+
+                    // Convert UE5 coordinates back to lat/lon
+                    const latlngs = edge.points.map(([x, y]) => {
+                        const metersX = x / 100;
+                        const metersY = y / 100;
+                        const lat = centerLat + metersY / 111320;
+                        const lon = centerLon + metersX / (111320 * cosLat);
+                        return [lat, lon];
+                    });
+
+                    L.polyline(latlngs, {
+                        color: edge.color || roadColors[edge.road_type] || '#888',
+                        weight: roadWeights[edge.road_type] || 2,
+                        opacity: 0.8
+                    }).addTo(roadLayers);
+                }
+            }
+
+            roadLayers.addTo(map);
+        }
+
+        function toggleRoads() {
+            const btn = document.getElementById('toggle-roads');
+            if (roadsVisible) {
+                map.removeLayer(roadLayers);
+                btn.classList.remove('active');
+            } else {
+                roadLayers.addTo(map);
+                btn.classList.add('active');
+            }
+            roadsVisible = !roadsVisible;
+        }
+
+        function copyCoord(el) {
+            navigator.clipboard.writeText(el.textContent).then(() => {
+                el.classList.add('copied');
+                setTimeout(() => el.classList.remove('copied'), 800);
+            });
+        }
+
+        function copyAllBounds() {
+            if (!currentBounds) return;
+            const b = currentBounds;
+            const gm = (lat, lon) => `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+            let text = [
+                `Center: ${gm(b.centerLat, b.centerLon)}`,
+                `NW:     ${gm(b.north, b.west)}`,
+                `NE:     ${gm(b.north, b.east)}`,
+                `SE:     ${gm(b.south, b.east)}`,
+                `SW:     ${gm(b.south, b.west)}`,
+                ``,
+                `North: ${b.north.toFixed(6)}  South: ${b.south.toFixed(6)}`,
+                `East:  ${b.east.toFixed(6)}  West:  ${b.west.toFixed(6)}`
+            ].join('\n');
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector('.copy-all-btn');
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy All Bounds to Clipboard', 1500);
+            });
+        }
+
+        // File input handler
+        document.getElementById('file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) readFile(file);
+        });
+
+        function readFile(file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const json = JSON.parse(evt.target.result);
+                    if (!json.metadata || !json.metadata.center_lat) {
+                        alert('Not a valid UE5 road data JSON file.');
+                        return;
+                    }
+                    loadData(json);
+                } catch (err) {
+                    alert('Error parsing JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Drag and drop
+        let dragCounter = 0;
+        document.addEventListener('dragenter', (e) => {
+            e.preventDefault();
+            dragCounter++;
+            document.getElementById('drop-overlay').classList.add('active');
+        });
+        document.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dragCounter--;
+            if (dragCounter === 0) {
+                document.getElementById('drop-overlay').classList.remove('active');
+            }
+        });
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dragCounter = 0;
+            document.getElementById('drop-overlay').classList.remove('active');
+            const file = e.dataTransfer.files[0];
+            if (file) readFile(file);
+        });
+    </script>
+</body>
+</html>
