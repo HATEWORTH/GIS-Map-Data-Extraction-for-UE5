@@ -16,9 +16,13 @@
     <div id="app">
         <!-- Header -->
         <header>
-            <h1>GIS Road Data Extractor</h1>
-            <p>Extract OpenStreetMap road data for UE5 import</p>
-            <nav><a href="../output/gallery.html">View Pre-Extracted Cities Gallery →</a> &nbsp;|&nbsp; <a href="../output/mapview.html">Map Viewer (Geographic Bounds) →</a></nav>
+            <div class="header-row">
+                <div>
+                    <h1>GIS Road Data Extractor</h1>
+                    <p>Extract OpenStreetMap road data for UE5 import</p>
+                </div>
+                <nav><a href="../output/gallery.html">Gallery →</a> <a href="../output/mapview.html">Map Viewer →</a></nav>
+            </div>
         </header>
 
         <!-- Controls Panel -->
@@ -117,16 +121,16 @@
                 <p>Area: <span id="sel-area">64 km²</span></p>
             </div>
 
-            <!-- Legend (inside map container) -->
+            <!-- Legend (right side, below selection info) -->
             <div id="legend">
                 <h4>Road Types</h4>
-                <div class="legend-item"><span class="color-box" style="background:#E31C1C"></span>Interstate/Freeway</div>
-                <div class="legend-item"><span class="color-box" style="background:#F48C06"></span>Highway/Expressway</div>
-                <div class="legend-item"><span class="color-box" style="background:#FFC300"></span>Principal Arterial</div>
+                <div class="legend-item"><span class="color-box" style="background:#E31C1C"></span>Interstate</div>
+                <div class="legend-item"><span class="color-box" style="background:#F48C06"></span>Highway</div>
+                <div class="legend-item"><span class="color-box" style="background:#FFC300"></span>Arterial</div>
                 <div class="legend-item"><span class="color-box" style="background:#FFE066"></span>Minor Arterial</div>
                 <div class="legend-item"><span class="color-box" style="background:#74C0FC"></span>Collector</div>
                 <div class="legend-item"><span class="color-box" style="background:#51CF66"></span>Residential</div>
-                <div class="legend-item"><span class="color-box" style="background:#868E96"></span>Service/Alley</div>
+                <div class="legend-item"><span class="color-box" style="background:#868E96"></span>Service</div>
             </div>
         </div>
 
@@ -173,7 +177,6 @@
             </div>
             <div id="heightmap-body">
                 <div class="heightmap-controls-grid">
-                    <!-- Row 1: Output settings -->
                     <div class="hm-control-row">
                         <div class="hm-control">
                             <label for="heightmap-size-mode">Output Size:</label>
@@ -201,10 +204,6 @@
                                 <option value="8">8-bit (Preview)</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Row 2: Enhancement settings -->
-                    <div class="hm-control-row">
                         <div class="hm-control">
                             <label for="heightmap-contrast">Detail:</label>
                             <select id="heightmap-contrast">
