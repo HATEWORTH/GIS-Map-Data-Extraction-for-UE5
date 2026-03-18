@@ -33,20 +33,27 @@ const OVERPASS_ENDPOINTS = [
     'https://overpass.openstreetmap.ru/api/interpreter'
 ];
 
-// Map tile layer definitions
+// Map tile layer definitions (all free, no API key required)
 const MAP_LAYERS = {
     'carto-dark': {
-        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
         options: {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
             subdomains: 'abcd', maxZoom: 20
         }
     },
-    'stadia-dark': {
-        url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+    'carto-dark-nolabels': {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
         options: {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            maxZoom: 20
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd', maxZoom: 20
+        }
+    },
+    'carto-light': {
+        url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd', maxZoom: 20
         }
     },
     'osm': {
@@ -61,13 +68,6 @@ const MAP_LAYERS = {
         options: {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://hot.openstreetmap.org/">HOT</a>',
             maxZoom: 19
-        }
-    },
-    'stadia-smooth': {
-        url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
-        options: {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            maxZoom: 20
         }
     },
     'esri-topo': {
@@ -112,18 +112,11 @@ const MAP_LAYERS = {
             maxZoom: 16
         }
     },
-    'stadia-toner': {
-        url: 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png',
+    'esri-streets': {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
         options: {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://stamen.com/">Stamen</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            maxZoom: 20
-        }
-    },
-    'stadia-toner-lite': {
-        url: 'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png',
-        options: {
-            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://stamen.com/">Stamen</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-            maxZoom: 20
+            attribution: '&copy; Esri',
+            maxZoom: 19
         }
     }
 };
