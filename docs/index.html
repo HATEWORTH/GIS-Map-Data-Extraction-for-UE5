@@ -74,6 +74,35 @@
             </div>
 
             <div class="control-group">
+                <label for="map-mode">Map:</label>
+                <select id="map-mode">
+                    <optgroup label="Dark">
+                        <option value="carto-dark" selected>CartoDB Dark</option>
+                        <option value="stadia-dark">Stadia Smooth Dark</option>
+                    </optgroup>
+                    <optgroup label="Street">
+                        <option value="osm">OpenStreetMap</option>
+                        <option value="osm-hot">OSM Humanitarian</option>
+                        <option value="stadia-smooth">Stadia Smooth</option>
+                    </optgroup>
+                    <optgroup label="Terrain">
+                        <option value="esri-topo">Esri World Topo</option>
+                        <option value="opentopomap">OpenTopoMap</option>
+                        <option value="esri-shaded">Esri Shaded Relief</option>
+                        <option value="esri-natgeo">Esri Nat Geo</option>
+                    </optgroup>
+                    <optgroup label="Satellite">
+                        <option value="esri-imagery">Esri World Imagery</option>
+                        <option value="usgs-imagery">USGS US Imagery</option>
+                    </optgroup>
+                    <optgroup label="Stylized">
+                        <option value="stadia-toner">Stadia Toner</option>
+                        <option value="stadia-toner-lite">Stadia Toner Lite</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="control-group">
                 <button id="extract-btn" class="primary">Extract Roads</button>
                 <button id="preview-btn">Preview Only</button>
             </div>
@@ -251,6 +280,12 @@
                 <!-- Info display -->
                 <div id="heightmap-info" class="heightmap-info"></div>
 
+                <!-- Gaea 2 reference guide (shown after heightmap generation) -->
+                <div id="gaea-reference" class="gaea-reference hidden">
+                    <div class="gaea-ref-header">Gaea 2 Setup Reference</div>
+                    <div class="gaea-ref-grid" id="gaea-ref-grid"></div>
+                </div>
+
                 <!-- Action buttons -->
                 <div class="heightmap-actions">
                     <button id="download-heightmap-standalone" class="download-btn heightmap-btn">
@@ -261,15 +296,6 @@
                             <em>UE5:</em> Landscape Mode &rarr; Import &rarr; Select PNG<br>
                             <em>Gaea 2:</em> File node &rarr; Load PNG &rarr; Set terrain definition<br><br>
                             <code>Dimensions match UE5 Landscape requirements exactly</code>
-                        </span>
-                    </button>
-                    <button id="download-gaea-settings" class="download-btn gaea-btn">
-                        Download Gaea Settings
-                        <span class="tooltip tooltip-up">
-                            <strong>Gaea 2 Settings File</strong><br>
-                            JSON file with terrain definition, elevation range, coordinates, and recommended Gaea 2 node settings.<br><br>
-                            <em>Contains:</em> Scale, bounds, elevation min/max, UE5 mapping values<br><br>
-                            <code>Reference this when configuring your Gaea 2 terrain graph</code>
                         </span>
                     </button>
                 </div>

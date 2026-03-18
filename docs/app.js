@@ -33,13 +33,122 @@ const OVERPASS_ENDPOINTS = [
     'https://overpass.openstreetmap.ru/api/interpreter'
 ];
 
+// Map tile layer definitions
+const MAP_LAYERS = {
+    'carto-dark': {
+        url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+            subdomains: 'abcd', maxZoom: 20
+        }
+    },
+    'stadia-dark': {
+        url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 20
+        }
+    },
+    'osm': {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19
+        }
+    },
+    'osm-hot': {
+        url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://hot.openstreetmap.org/">HOT</a>',
+            maxZoom: 19
+        }
+    },
+    'stadia-smooth': {
+        url: 'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 20
+        }
+    },
+    'esri-topo': {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+        options: {
+            attribution: '&copy; Esri, DeLorme, NAVTEQ, TomTom',
+            maxZoom: 19
+        }
+    },
+    'opentopomap': {
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        options: {
+            attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 17
+        }
+    },
+    'esri-shaded': {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}',
+        options: {
+            attribution: '&copy; Esri, USGS',
+            maxZoom: 13
+        }
+    },
+    'esri-natgeo': {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
+        options: {
+            attribution: '&copy; Esri, National Geographic',
+            maxZoom: 16
+        }
+    },
+    'esri-imagery': {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        options: {
+            attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+            maxZoom: 19
+        }
+    },
+    'usgs-imagery': {
+        url: 'https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/{z}/{y}/{x}',
+        options: {
+            attribution: '&copy; USGS',
+            maxZoom: 16
+        }
+    },
+    'stadia-toner': {
+        url: 'https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://stamen.com/">Stamen</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 20
+        }
+    },
+    'stadia-toner-lite': {
+        url: 'https://tiles.stadiamaps.com/tiles/stamen_toner_lite/{z}/{x}/{y}{r}.png',
+        options: {
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia</a> &copy; <a href="https://stamen.com/">Stamen</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+            maxZoom: 20
+        }
+    }
+};
+
 // State
 let map;
+let currentTileLayer = null;
 let selectionRectangle = null;
 let roadLayers = null;
 let currentCenter = { lat: 40.7580, lon: -73.9855 };
 let currentChunkSize = 8;
 let extractedData = null;
+
+// Switch map tile layer
+function setMapLayer(layerId) {
+    const layerDef = MAP_LAYERS[layerId];
+    if (!layerDef) return;
+
+    if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+    }
+    currentTileLayer = L.tileLayer(layerDef.url, layerDef.options).addTo(map);
+    // Ensure tile layer is behind overlays
+    currentTileLayer.bringToBack();
+}
 
 // Initialize map
 function initMap() {
@@ -49,12 +158,8 @@ function initMap() {
         zoomControl: true
     });
 
-    // Add dark tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 19
-    }).addTo(map);
+    // Set default tile layer
+    setMapLayer('carto-dark');
 
     // Create layer groups
     roadLayers = L.layerGroup().addTo(map);
@@ -603,19 +708,16 @@ function setupEventHandlers() {
         });
     }
 
+    // Map mode selector
+    document.getElementById('map-mode').addEventListener('change', (e) => {
+        setMapLayer(e.target.value);
+    });
+
     // Download Heightmap
     const heightmapStandaloneBtn = document.getElementById('download-heightmap-standalone');
     if (heightmapStandaloneBtn) {
         heightmapStandaloneBtn.addEventListener('click', async () => {
             await downloadHeightmap();
-        });
-    }
-
-    // Download Gaea Settings
-    const gaeaSettingsBtn = document.getElementById('download-gaea-settings');
-    if (gaeaSettingsBtn) {
-        gaeaSettingsBtn.addEventListener('click', async () => {
-            await downloadGaeaSettings();
         });
     }
 
@@ -1219,8 +1321,9 @@ async function downloadHeightmap() {
         const range = result.maxElevation - result.minElevation;
         setStatus(`Heightmap ready: ${result.outputSize}x${result.outputSize}px ${result.bitDepth}-bit | ${result.minElevation.toFixed(0)}m to ${result.maxElevation.toFixed(0)}m (${range.toFixed(0)}m range)`, 'success');
 
-        // Store last result for Gaea settings export
+        // Store last result and show Gaea reference
         lastHeightmapResult = result;
+        showGaeaReference(result);
 
         const bitLabel = result.bitDepth === 16 ? '16bit' : '8bit';
         const filename = `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${result.outputSize}px_${bitLabel}.png`;
@@ -1270,161 +1373,59 @@ async function downloadHeightmap() {
 // Last heightmap result for Gaea export
 let lastHeightmapResult = null;
 
-// Generate and download Gaea 2 settings file
-async function downloadGaeaSettings() {
-    const bounds = calculateBounds(currentCenter.lat, currentCenter.lon, currentChunkSize);
-    const sizeMode = document.getElementById('heightmap-size-mode')?.value || 'ue5';
-    const sizeSelect = document.getElementById('heightmap-size');
-    const targetSize = sizeSelect?.value === 'auto' ? 4033 : parseInt(sizeSelect?.value || '4033');
-    const bitDepth = parseInt(document.getElementById('heightmap-bitdepth')?.value || '16');
+// Show Gaea 2 reference guide in-panel after heightmap generation
+function showGaeaReference(result) {
+    const refPanel = document.getElementById('gaea-reference');
+    const refGrid = document.getElementById('gaea-ref-grid');
+    if (!refPanel || !refGrid) return;
+
     const terrainScaleSetting = document.getElementById('gaea-terrain-scale')?.value || 'auto';
     const verticalScaleSetting = document.getElementById('gaea-vertical-scale')?.value || 'auto';
-    const waterLevel = parseFloat(document.getElementById('gaea-water-level')?.value || '0');
 
     const terrainScaleKm = terrainScaleSetting === 'auto' ? currentChunkSize : parseFloat(terrainScaleSetting);
     const terrainScaleM = terrainScaleKm * 1000;
 
-    // Use last heightmap result elevation data if available
-    const minElev = lastHeightmapResult?.minElevation ?? 0;
-    const maxElev = lastHeightmapResult?.maxElevation ?? 500;
-    const elevRange = maxElev - minElev;
-
+    const elevRange = result.maxElevation - result.minElevation;
     const verticalScaleM = verticalScaleSetting === 'auto'
-        ? Math.max(100, Math.ceil(elevRange / 100) * 100 * 1.2) // 20% headroom, rounded to 100m
+        ? Math.max(100, Math.ceil(elevRange / 100) * 100 * 1.2)
         : parseFloat(verticalScaleSetting);
 
-    // UE5 scale calculations
-    const UE5_SCALE = 100; // 1m = 100 UU
+    const UE5_SCALE = 100;
     const landscapeSizeUU = terrainScaleM * UE5_SCALE;
-    const zScaleUE5 = (elevRange * UE5_SCALE) / 512; // UE5 Z scale relative to 512 height range
+    const zScaleUE5 = (elevRange * UE5_SCALE) / 512;
+    const xyScale = (landscapeSizeUU / result.outputSize).toFixed(2);
 
-    const settings = {
-        _description: 'Gaea 2 terrain settings - generated by GIS Road Data Extractor',
-        _version: '1.0',
-        _generated: new Date().toISOString(),
+    const buildRes = result.outputSize >= 4033 ? 'Ultra' : result.outputSize >= 2017 ? 'High' : 'Normal';
 
-        // Geographic reference
-        geographic: {
-            center_lat: currentCenter.lat,
-            center_lon: currentCenter.lon,
-            bounds: {
-                north: bounds.north,
-                south: bounds.south,
-                east: bounds.east,
-                west: bounds.west
-            },
-            chunk_size_km: currentChunkSize
-        },
+    refGrid.innerHTML = `
+        <div class="gaea-ref-section">
+            <div class="gaea-ref-title">Gaea 2 &mdash; Terrain Definition</div>
+            <div class="gaea-ref-row"><span>Resolution</span><span>${result.outputSize}</span></div>
+            <div class="gaea-ref-row"><span>Terrain Scale</span><span>${terrainScaleM} m (${terrainScaleKm} km)</span></div>
+            <div class="gaea-ref-row"><span>Vertical Scale</span><span>${verticalScaleM} m</span></div>
+            <div class="gaea-ref-row"><span>Build Quality</span><span>${buildRes}</span></div>
+        </div>
+        <div class="gaea-ref-section">
+            <div class="gaea-ref-title">Gaea 2 &mdash; File Node</div>
+            <div class="gaea-ref-row"><span>Import as</span><span>16-bit Grayscale PNG</span></div>
+            <div class="gaea-ref-row"><span>Elevation Range</span><span>${result.minElevation.toFixed(1)}m &ndash; ${result.maxElevation.toFixed(1)}m</span></div>
+            <div class="gaea-ref-row"><span>Elevation Spread</span><span>${elevRange.toFixed(1)} m</span></div>
+        </div>
+        <div class="gaea-ref-section">
+            <div class="gaea-ref-title">UE5 &mdash; Landscape Import</div>
+            <div class="gaea-ref-row"><span>Scale X, Y</span><span>${xyScale}</span></div>
+            <div class="gaea-ref-row"><span>Scale Z</span><span>${zScaleUE5.toFixed(2)}</span></div>
+            <div class="gaea-ref-row"><span>Z Offset</span><span>${Math.round(result.minElevation * UE5_SCALE)} UU</span></div>
+            <div class="gaea-ref-row"><span>Landscape Size</span><span>${result.outputSize} x ${result.outputSize}</span></div>
+        </div>
+        <div class="gaea-ref-section">
+            <div class="gaea-ref-title">Geographic Reference</div>
+            <div class="gaea-ref-row"><span>Center</span><span>${currentCenter.lat.toFixed(4)}, ${currentCenter.lon.toFixed(4)}</span></div>
+            <div class="gaea-ref-row"><span>Area</span><span>${currentChunkSize} x ${currentChunkSize} km</span></div>
+        </div>
+    `;
 
-        // Heightmap file info
-        heightmap: {
-            filename: `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${targetSize}px_${bitDepth === 16 ? '16bit' : '8bit'}.png`,
-            resolution: targetSize,
-            bit_depth: bitDepth,
-            format: 'PNG grayscale'
-        },
-
-        // Elevation data
-        elevation: {
-            min_meters: Math.round(minElev * 10) / 10,
-            max_meters: Math.round(maxElev * 10) / 10,
-            range_meters: Math.round(elevRange * 10) / 10,
-            water_level_meters: waterLevel
-        },
-
-        // Gaea 2 terrain definition settings
-        gaea2: {
-            terrain_definition: {
-                resolution: targetSize,
-                terrain_scale_meters: terrainScaleM,
-                vertical_scale_meters: verticalScaleM,
-                _note: 'Set these in Gaea 2: Terrain Definition panel'
-            },
-            recommended_nodes: {
-                file_input: {
-                    node: 'File',
-                    filename: `heightmap_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_${targetSize}px_${bitDepth === 16 ? '16bit' : '8bit'}.png`,
-                    _note: 'Import heightmap as File node, set to 16-bit grayscale'
-                },
-                erosion: {
-                    node: 'Erosion',
-                    duration: elevRange > 200 ? 0.5 : 0.3,
-                    rock_softness: elevRange > 500 ? 0.3 : 0.5,
-                    _note: 'Adjusted for terrain relief. Higher relief = longer erosion, harder rock'
-                },
-                thermal: {
-                    node: 'Thermal',
-                    iterations: elevRange > 200 ? 15 : 10,
-                    _note: 'Thermal weathering. More iterations for mountainous terrain'
-                },
-                output: {
-                    node: 'Output',
-                    format: 'PNG 16-bit',
-                    resolution: targetSize,
-                    _note: 'Match input resolution for UE5 Landscape import'
-                }
-            },
-            build_settings: {
-                resolution: targetSize >= 4033 ? 'Ultra' : targetSize >= 2017 ? 'High' : 'Normal',
-                force_high_quality: targetSize >= 4033
-            }
-        },
-
-        // UE5 Landscape import settings
-        ue5: {
-            landscape_size: targetSize,
-            scale: {
-                x: landscapeSizeUU / targetSize,
-                y: landscapeSizeUU / targetSize,
-                z: zScaleUE5
-            },
-            location_offset: {
-                x: 0,
-                y: 0,
-                z: Math.round(minElev * UE5_SCALE)
-            },
-            _note: `Set Landscape scale to (${(landscapeSizeUU / targetSize).toFixed(2)}, ${(landscapeSizeUU / targetSize).toFixed(2)}, ${zScaleUE5.toFixed(2)}) in UE5`
-        },
-
-        // Paired road data reference
-        road_data: {
-            _note: 'Extract roads for this same area using the Road Extractor on the same page',
-            expected_filename: `roads_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}_ue5.json`,
-            coordinate_system: 'UE5 Unreal Units (1m = 100 UU), center-origin'
-        }
-    };
-
-    const jsonString = JSON.stringify(settings, null, 2);
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    const filename = `gaea_settings_${currentCenter.lat.toFixed(4)}_${currentCenter.lon.toFixed(4)}.json`;
-
-    if ('showSaveFilePicker' in window) {
-        try {
-            const handle = await window.showSaveFilePicker({
-                suggestedName: filename,
-                types: [{ description: 'JSON File', accept: { 'application/json': ['.json'] } }]
-            });
-            const writable = await handle.createWritable();
-            await writable.write(blob);
-            await writable.close();
-            setStatus(`Saved Gaea settings: ${handle.name}`, 'success');
-            return;
-        } catch (err) {
-            if (err.name === 'AbortError') return;
-        }
-    }
-
-    // Fallback
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    setStatus(`Downloaded: ${filename}`, 'success');
+    refPanel.classList.remove('hidden');
 }
 
 // Initialize on load
