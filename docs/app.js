@@ -1097,51 +1097,73 @@ async function generateHeightmap() {
     if (minElev === Infinity) { minElev = 0; maxElev = 100; }
 
     console.log(`Elevation range: ${minElev.toFixed(1)}m to ${maxElev.toFixed(1)}m`);
-    setStatus(`Elevation: ${minElev.toFixed(0)}m to ${maxElev.toFixed(0)}m. Cropping...`, 'loading');
+    setStatus(`Elevation: ${minElev.toFixed(0)}m to ${maxElev.toFixed(0)}m. Reprojecting...`, 'loading');
     showProgress(65);
 
-    // Crop to exact geographic bounds
-    const topLeftCoord = tileToLatLon(topLeft.x, topLeft.y, zoom);
-    const bottomRightCoord = tileToLatLon(bottomRight.x + 1, bottomRight.y + 1, zoom);
+    // Resample from Mercator tile grid to equirectangular projection
+    // This ensures the heightmap aligns with road data which uses equirectangular
+    const n = Math.pow(2, zoom);
 
-    const pixelPerDegLon = compositeWidth / (bottomRightCoord.lon - topLeftCoord.lon);
-    const pixelPerDegLat = compositeHeight / (topLeftCoord.lat - bottomRightCoord.lat);
-
-    const cropLeft = Math.max(0, Math.floor((bounds.west - topLeftCoord.lon) * pixelPerDegLon));
-    const cropTop = Math.max(0, Math.floor((topLeftCoord.lat - bounds.north) * pixelPerDegLat));
-    const cropRight = Math.min(compositeWidth, Math.floor((bounds.east - topLeftCoord.lon) * pixelPerDegLon));
-    const cropBottom = Math.min(compositeHeight, Math.floor((topLeftCoord.lat - bounds.south) * pixelPerDegLat));
-
-    const cropWidth = cropRight - cropLeft;
-    const cropHeight = cropBottom - cropTop;
-
-    // Extract cropped elevation into flat array
-    const croppedElev = new Float32Array(cropWidth * cropHeight);
-    for (let y = 0; y < cropHeight; y++) {
-        for (let x = 0; x < cropWidth; x++) {
-            croppedElev[y * cropWidth + x] = fullElevation[(cropTop + y) * compositeWidth + (cropLeft + x)];
-        }
+    // Helper: convert lat/lon to fractional pixel position in the Mercator tile composite
+    function latLonToMercatorPixel(lat, lon) {
+        const px = ((lon + 180) / 360 * n - topLeft.x) * 256;
+        const latRad = lat * Math.PI / 180;
+        const py = ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2 * n - topLeft.y) * 256;
+        return { px, py };
     }
 
-    // Recalculate min/max for cropped region
+    // Bilinear sample from the Mercator elevation grid
+    function sampleElevation(px, py) {
+        const x0 = Math.floor(px);
+        const y0 = Math.floor(py);
+        const x1 = Math.min(x0 + 1, compositeWidth - 1);
+        const y1 = Math.min(y0 + 1, compositeHeight - 1);
+        const fx = px - x0;
+        const fy = py - y0;
+
+        const cx0 = Math.max(0, Math.min(x0, compositeWidth - 1));
+        const cy0 = Math.max(0, Math.min(y0, compositeHeight - 1));
+
+        const v00 = fullElevation[cy0 * compositeWidth + cx0];
+        const v10 = fullElevation[cy0 * compositeWidth + x1];
+        const v01 = fullElevation[y1 * compositeWidth + cx0];
+        const v11 = fullElevation[y1 * compositeWidth + x1];
+
+        return v00 * (1 - fx) * (1 - fy) + v10 * fx * (1 - fy) +
+               v01 * (1 - fx) * fy + v11 * fx * fy;
+    }
+
+    // Build equirectangular grid - each pixel maps linearly to lat/lon
+    // This matches how convertToUE5() maps coordinates (linear lat/lon to meters)
+    const outputSize = targetSize || 1009;
+    const resampled = new Float32Array(outputSize * outputSize);
+
+    setStatus(`Reprojecting to ${outputSize}x${outputSize} equirectangular...`, 'loading');
+    showProgress(70);
+
     minElev = Infinity;
     maxElev = -Infinity;
-    for (let i = 0; i < croppedElev.length; i++) {
-        if (croppedElev[i] < minElev) minElev = croppedElev[i];
-        if (croppedElev[i] > maxElev) maxElev = croppedElev[i];
+
+    for (let row = 0; row < outputSize; row++) {
+        // Linear latitude mapping (equirectangular) - north to south
+        const lat = bounds.north - (row / (outputSize - 1)) * (bounds.north - bounds.south);
+
+        for (let col = 0; col < outputSize; col++) {
+            // Linear longitude mapping - west to east
+            const lon = bounds.west + (col / (outputSize - 1)) * (bounds.east - bounds.west);
+
+            // Convert to Mercator pixel position and sample
+            const { px, py } = latLonToMercatorPixel(lat, lon);
+            const elev = sampleElevation(px, py);
+            resampled[row * outputSize + col] = elev;
+
+            if (elev < minElev) minElev = elev;
+            if (elev > maxElev) maxElev = elev;
+        }
     }
 
     const rawMinElev = minElev;
     const rawMaxElev = maxElev;
-
-    setStatus('Resampling to target resolution...', 'loading');
-    showProgress(72);
-
-    // Resample to target size
-    const outputSize = targetSize || cropWidth;
-    const resampled = (outputSize === cropWidth && outputSize === cropHeight)
-        ? croppedElev
-        : resampleElevation(croppedElev, cropWidth, cropHeight, outputSize, outputSize);
 
     setStatus('Applying contrast and encoding...', 'loading');
     showProgress(80);
